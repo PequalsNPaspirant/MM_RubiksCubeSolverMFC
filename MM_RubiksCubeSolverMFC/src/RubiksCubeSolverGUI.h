@@ -62,29 +62,41 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration);
-		void setAnimate(bool animateIn) { animate_ = animateIn; }
+		void setAnimate(bool animateIn) 
+		{ 
+			animate_ = animateIn;
+			scene_.setAnimate(animate_);
+		}
+		bool activateRenderingThread(bool force = false);
+
 	private:
-		bool activateRenderingThread();
 		void ScrambleImpl();
 		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
 		void runRubiksCubeTests();
-		void fitToScreenImpl();
+		//void fitToScreenImpl();
 
-		enum class firstGenerationCommands
+		enum class firstGenerationCommands //Only one command can be executed at a time
 		{
 			eNoCommand = 0,
 			eScramble,
 			eSolve,
 			eRunTests,
-			eFitToScreen,
 			eResizeRubiksCube,
 			eMax
 		};
-		enum class secondGenerationCommands
+		enum class secondGenerationCommands //These commands interrupts the first generation commands
+		{
+			eNoCommand = 0,
+			eResetRubiksCube,
+			//eSetAnimationSpeed,
+			//eFitToScreen,
+			eMax
+		};
+		enum class thirdGenerationCommands //These commands can run in parallel with first and second generation commands
 		{
 			eNoCommand = 0,
 			eSetAnimationSpeed,
-			eResetRubiksCube,
+			eFitToScreen,
 			eMax
 		};
 
@@ -101,7 +113,8 @@ namespace mm {
 		void render();
 		void createGraphicsArea();
 		/**/bool setupPixelFormat(HDC hdc);
-		void commandHandler();
+		void commandHandlerFirstGen();
+		void commandHandlerSecondGen();
 		void redrawWindow();
 		void applyAlgorithm(const string& algo, bool animate);
 		bool isSolved();
@@ -109,7 +122,7 @@ namespace mm {
 		void setFramesPerRotation(int val) { framesPerRotation_ = val; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 		void setSleepTimeMilliSec(int val) { sleepTimeMilliSec_ = val; }
-		bool getResetRubiksCube() { return resetRubiksCube_; }
+		bool getInterruptAnimation() { return interruptAnimation_; }
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
 		void displayUpdatedStats();
 
@@ -160,7 +173,7 @@ namespace mm {
 		//The reading thread may read stale value which is OK. It will just have delayed responce.
 		//std::atomic<bool> breakOperation_{ false };
 		//std::mutex mutex_;
-		bool resetRubiksCube_{ false }; 
+		bool interruptAnimation_{ false }; 
 	};
 
 }

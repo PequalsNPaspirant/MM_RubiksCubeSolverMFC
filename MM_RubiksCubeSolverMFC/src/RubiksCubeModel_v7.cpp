@@ -289,7 +289,9 @@ namespace mm {
 		isScrambling_(false),
 		solutionSteps_(0),
 		solution_(""),
-		duration_(0)
+		duration_(0),
+		animate_(false),
+		pUi_(nullptr)
 	{
 		ResetCube(false, nullptr);
 
@@ -350,6 +352,9 @@ namespace mm {
 
 	void RubiksCubeModel_v7::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
 	{
+		animate_ = animate;
+		pUi_ = ui;
+
 		g_bRotating = false;
 		g_bFlipRotation = false;
 		g_vRotationAxis = CVector3(0, 0, 0);
@@ -400,15 +405,18 @@ namespace mm {
 			}
 		}
 
-		if (animate)
+		if (animate_ && pUi_)
 		{
-			ui->redrawWindow();
+			pUi_->redrawWindow();
 			//ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_, duration_);
 		}
 	}
 
 	string RubiksCubeModel_v7::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
 	{
+		animate_ = animate;
+		pUi_ = &ui;
+
 		//string solution;
 		//if (size_ == 2)
 		//{
@@ -435,7 +443,7 @@ namespace mm {
 		solution_ = "";
 		duration_ = 0;
 
-		RubiksCubeSolver_NxNxN solver(*this, animate, ui);
+		RubiksCubeSolver_NxNxN solver(*this);
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point start_time = HRClock::now();
 		string solution = solver.solve(solutionSteps);
@@ -1025,6 +1033,8 @@ namespace mm {
 
 	void RubiksCubeModel_v7::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
+		animate_ = animate;
+		pUi_ = &ui;
 		//solutionSteps_ = 0;
 		//solution_ = "";
 		//duration_ = 0;
@@ -1036,17 +1046,18 @@ namespace mm {
 			scramblingAlgo_ = "";
 		}
 		isScrambling_ = true;
-		int steps = applyAlgorithm(algorithm, animate, ui);
+		int steps = applyAlgorithm(algorithm);
 		isScrambling_ = false;
 	}
 
-	int RubiksCubeModel_v7::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
+	//int RubiksCubeModel_v7::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
+	int RubiksCubeModel_v7::applyAlgorithm(const string& algorithm)
 	{
 		int solutionSteps = solutionSteps_;
 		g_bFlipRotation = false;
 
 		//TODO: avoid the time required for string operations while solving without animation
-		if (!animate)
+		if (!animate_)
 		{
 			if (isScrambling_)
 				scramblingAlgo_ += algorithm;
@@ -1111,14 +1122,14 @@ namespace mm {
 			else
 				++solutionSteps_;
 
-			if (animate)
+			if (animate_)
 			{
 				if (isScrambling_)
 					scramblingAlgo_ += step;
 				else
 					solution_ += step;
 			}
-			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations, animate, ui);
+			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations);
 		}
 
 		return solutionSteps_ - solutionSteps;
@@ -1170,8 +1181,9 @@ namespace mm {
 	//	}
 	//}
 
-	void RubiksCubeModel_v7::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
 	//void RubiksCubeModel_v7::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
+	//void RubiksCubeModel_v7::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
+	void RubiksCubeModel_v7::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -1262,12 +1274,12 @@ namespace mm {
 		g_nLayerIndexFrom = layerIndexFrom;
 		g_nLayerIndexTo = layerIndexTo;
 
-		if (animate)
+		if (animate_)
 		{
 			//display step before starting animation for that step:
-			ui.displayUpdatedStats();
+			pUi_->displayUpdatedStats();
 			g_bRotating = true;
-			int numTotalFrames = ui.getFramesPerRotation() * numRotations;
+			int numTotalFrames = pUi_->getFramesPerRotation() * numRotations;
 			double stepAngle = targetAngle / numTotalFrames;
 			//Run the loop for (numTotalFrames - 1) times, to avoid division errors. 
 			//The last step should achive perfect angle exactly equal to targetAngle
@@ -1275,16 +1287,16 @@ namespace mm {
 			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
 			for(int step = numTotalFrames; step > 1; --step)
 			{
-				if (ui.getResetRubiksCube())
+				if (pUi_->getInterruptAnimation())
 					throw false;
 
 				g_nRotationAngle += stepAngle;
-				ui.redrawWindow();
+				pUi_->redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 				if(step > numStepsForSnappingEffect)
-					Sleep(ui.getSleepTimeMilliSec());
+					Sleep(pUi_->getSleepTimeMilliSec());
 				else
-					Sleep(step * ui.getSleepTimeMilliSec() / numStepsForSnappingEffect); //Sleep time will be reduced as step -> 1
+					Sleep(step * pUi_->getSleepTimeMilliSec() / numStepsForSnappingEffect); //Sleep time will be reduced as step -> 1
 			}
 
 			//After above loop, the target angle is not achieved, so set it now as a last step
@@ -1297,13 +1309,13 @@ namespace mm {
 		//Fix cube position and Reset all parameters
 		g_nRotationAngle = targetAngle;
 		fixRubiksCubeFaces();
-		if (animate)
+		if (animate_)
 		{
-			ui.redrawWindow();
+			pUi_->redrawWindow();
 			//ui.displayMessage();
 			//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 			//Sleep for some time before going for next step
-			Sleep(5 * ui.getSleepTimeMilliSec());
+			Sleep(5 * pUi_->getSleepTimeMilliSec());
 		}
 		g_vRotationAxis = CVector3{0.0, 0.0, 0.0};
 		g_nRotationAngle = 0;
@@ -1489,10 +1501,11 @@ namespace mm {
 	// Solver NxNxN
 	//=======================================================================================================
 
-	RubiksCubeModel_v7::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v7& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
+	//RubiksCubeModel_v7::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v7& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
+	RubiksCubeModel_v7::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v7& rubiksCube)
 		: rubiksCube_(rubiksCube),
-		animate_(animate),
-		ui_(ui),
+		//animate_(animate),
+		//ui_(ui),
 		solvedEdges_(0)
 	{
 	}
@@ -3359,7 +3372,8 @@ namespace mm {
 
 	void RubiksCubeModel_v7::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
 	{
-		rubiksCube_.applyAlgorithm(step, animate_, ui_);
+		//rubiksCube_.applyAlgorithm(step, rubiksCube_.getAnimate(), ui_);
+		rubiksCube_.applyAlgorithm(step);
 	}
 
 	//bool RubiksCubeModel_v7::RubiksCubeSolver_NxNxN::isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)

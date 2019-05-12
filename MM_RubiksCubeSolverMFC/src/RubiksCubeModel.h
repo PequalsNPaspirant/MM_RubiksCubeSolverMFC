@@ -67,6 +67,7 @@ namespace mm {
 	class RubiksCubeModel
 	{
 	public:
+		virtual void setAnimate(bool animate) {}
 		virtual void ResetCube(bool animate, RubiksCubeSolverGUI* ui) = 0;
 		//virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
 		virtual string generateScramblingAlgo(int length, bool includeNonStandardRotations) = 0;

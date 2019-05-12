@@ -56,6 +56,7 @@ namespace mm {
 		//void getCubeSelection(int *x, int *y, int *z, Face *face, int g_nHitCount);
 		CVector3 mapCoordinates(int x, int y);
 
+		void setAnimate(bool animate);
 		void Reset(bool animate);
 		string generateScramblingAlgo(int length);
 		void scramble(const string& algo, bool animate);

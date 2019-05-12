@@ -269,6 +269,11 @@ namespace mm {
 	//	*face = (Face)ptrNames[3];
 	//}
 
+	void RubiksCubeSolverScene::setAnimate(bool animate)
+	{
+		rubicCubeModel_->setAnimate(animate);
+	}
+
 	void RubiksCubeSolverScene::Reset(bool animate)
 	{
 		rubicCubeModel_->ResetCube(animate, &refUI_);

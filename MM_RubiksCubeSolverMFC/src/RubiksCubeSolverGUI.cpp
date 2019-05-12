@@ -32,6 +32,8 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <cassert>
+//#include <thread>
+//#include <chrono>
 using namespace std;
 
 #include "RubiksCubeSolverGUI.h"
@@ -127,33 +129,42 @@ namespace mm {
 		firstGenCommand_ = firstGenerationCommands::eRunTests;
 		activateRenderingThread();
 	}
-	void RubiksCubeSolverGUI::fitToScreen()
-	{
-		firstGenCommand_ = firstGenerationCommands::eFitToScreen;
-		activateRenderingThread();
-	}
 	void RubiksCubeSolverGUI::setRubiksCubeSize(unsigned int size)
 	{
 		firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
 		rubikCubeSize_ = size;
 		activateRenderingThread();
 	}
-	void RubiksCubeSolverGUI::setAnimationSpeed(unsigned int speed)
-	{
-		firstGenCommand_ = firstGenerationCommands::eNoCommand;
-		secondGenCommand_ = secondGenerationCommands::eSetAnimationSpeed;
-		animationSpeed_ = speed;
-		framesPerRotation_ = (106 - animationSpeed_) / 2;
-		sleepTimeMilliSec_ = (106 - animationSpeed_) / 2;
-		activateRenderingThread();
-	}
+
+	//second generation commands
 	void RubiksCubeSolverGUI::resetRubiksCube()
 	{
 		firstGenCommand_ = firstGenerationCommands::eNoCommand;
 		secondGenCommand_ = secondGenerationCommands::eResetRubiksCube;
-		resetRubiksCube_ = true;
+		interruptAnimation_ = true;
 		activateRenderingThread();
 	}
+
+	//Third generation commands
+	void RubiksCubeSolverGUI::setAnimationSpeed(unsigned int speed)
+	{
+		//firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		//secondGenCommand_ = secondGenerationCommands::eSetAnimationSpeed;
+		animationSpeed_ = speed;
+		framesPerRotation_ = (106 - animationSpeed_) / 2;
+		sleepTimeMilliSec_ = (106 - animationSpeed_) / 2;
+		//activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::fitToScreen()
+	{
+		//firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		//secondGenCommand_ = secondGenerationCommands::eFitToScreen;
+		//interruptAnimation_ = true;
+		scene_.fitToScreen();
+		activateRenderingThread();
+	}
+
+	
 
 	//void RubiksCubeSolverGUI::createMainWindow(HINSTANCE hInstance)
 	//{
@@ -293,16 +304,17 @@ namespace mm {
 			{
 				try 
 				{
-					commandHandler();
+					commandHandlerFirstGen();
 				}
 				catch (bool flag)
 				{
 					//The previous command is broken/interrupted, reset the rubik cube.
 					//If we need to perform different actions on the type of interrupt, we can include that information in the exception object
-					bool animate = true;
-					Reset(animate);
-					resetRubiksCube_ = false; //reset the flag
+					//bool animate = true;
+					//Reset(animate);
+					interruptAnimation_ = false; //reset the flag
 				}
+				commandHandlerSecondGen();
 				renderNow_.store(false, std::memory_order_release);
 
 				//GdiFlush();
@@ -328,7 +340,8 @@ namespace mm {
 		g_hRC = wglCreateContext(g_hDC);
 		wglMakeCurrent(g_hDC, g_hRC);
 
-		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
+		//scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
 		scene_.initScene();
 
 		Reset(true); //there is some bug in initial display: the Rubiks cube is displayed scattered. Reset() is a workaround.
@@ -1070,6 +1083,7 @@ namespace mm {
 		//	GetClientRect(hWnd, &g_rWnd);
 		//}
 		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		//std::this_thread::sleep_for(std::chrono_duration<std::chrono::milliseconds>(10));
 		activateRenderingThread();
 		//redrawWindow();
 	}
@@ -1145,10 +1159,15 @@ namespace mm {
 	//	activateRenderingThread();
 	//}
 
-	bool RubiksCubeSolverGUI::activateRenderingThread()
+	bool RubiksCubeSolverGUI::activateRenderingThread(bool force /*= false*/)
 	{
-		//if(onlyIfNotAlreadyActive)
-		//{
+		if (force)
+		{
+			//Activate always
+			renderNow_.store(true, std::memory_order_release);
+		}
+		else
+		{
 			bool expected = false;
 			bool desired = true;
 			if (!renderNow_.compare_exchange_weak(expected, desired, std::memory_order_release, std::memory_order_relaxed))
@@ -1162,17 +1181,12 @@ namespace mm {
 					return false;
 				}
 			}
-		//}
-		//else
-		//{
-			//Activate always
-		//	renderNow_.store(true, std::memory_order_release);
-		//}
+		}
 
 			return true;
 	}
 
-	void RubiksCubeSolverGUI::commandHandler()
+	void RubiksCubeSolverGUI::commandHandlerFirstGen()
 	{
 		switch (firstGenCommand_)
 		{
@@ -1187,23 +1201,16 @@ namespace mm {
 		case firstGenerationCommands::eRunTests:
 			runRubiksCubeTests();
 			break;
-		case firstGenerationCommands::eFitToScreen:
-			fitToScreenImpl();
-			break;
 		case firstGenerationCommands::eResizeRubiksCube:
 			replaceModelBy(currentModelName_, rubikCubeSize_, true);
 			break;
 		default:
-			switch (secondGenCommand_)
-			{
-			case secondGenerationCommands::eResetRubiksCube:
-				bool animate = true;
-				Reset(animate);
-				break;
-			}
+			//do nothing
+			break;
 		}
 
 		redrawWindow();
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
 
 		// menu
 		//if (commandId_ == IDM_RUBIKSCUBE_SCRAMBLE)
@@ -1323,6 +1330,28 @@ namespace mm {
 		//commandId_ = -1; //Remove this reset of flag...it's bad design
 	}
 
+	void RubiksCubeSolverGUI::commandHandlerSecondGen()
+	{
+		switch (secondGenCommand_)
+		{
+		case secondGenerationCommands::eResetRubiksCube:
+		{
+			bool animate = true;
+			Reset(animate);
+		}
+		break;
+		//case secondGenerationCommands::eFitToScreen:
+		//	fitToScreenImpl();
+		//	break;
+		default:
+			//do nothing
+			break;
+		}
+
+		redrawWindow();
+		secondGenCommand_ = secondGenerationCommands::eNoCommand;
+	}
+
 	void RubiksCubeSolverGUI::Reset(bool animate)
 	{
 		scene_.Reset(animate);
@@ -1408,10 +1437,10 @@ namespace mm {
 		tester_.testRubiksCube(animate_);
 	}
 
-	void RubiksCubeSolverGUI::fitToScreenImpl()
-	{
-		scene_.fitToScreen();
-		//redrawWindow();
-	}
+	//void RubiksCubeSolverGUI::fitToScreenImpl()
+	//{
+	//	scene_.fitToScreen();
+	//	//redrawWindow();
+	//}
 }
 
