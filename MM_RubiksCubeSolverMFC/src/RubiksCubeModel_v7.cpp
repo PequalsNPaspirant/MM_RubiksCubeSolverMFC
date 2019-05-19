@@ -1051,95 +1051,177 @@ namespace mm {
 		isScrambling_ = false;
 	}
 
+	bool RubiksCubeModel_v7::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
+	{
+		animate_ = animate;
+		pUi_ = &ui;
+		//solutionSteps_ = 0;
+		//solution_ = "";
+		//duration_ = 0;
+
+		//If the rubik's cube is in solved state, reset srambling algo
+		if (isSolved())
+		{
+			scramblingSteps_ = 0;
+			scramblingAlgo_ = "";
+			//startTime_ = HRClock::now();
+		}
+		isScrambling_ = true;
+		int steps = applyAlgorithm(algorithm);
+		isScrambling_ = false;
+
+		if (steps == 0)
+		{
+			invalidStep = invalidStep_;
+			return false;
+		}
+
+		return true;
+	}
+
 	//int RubiksCubeModel_v7::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	int RubiksCubeModel_v7::applyAlgorithm(const string& algorithm)
 	{
-		int solutionSteps = solutionSteps_;
-		g_bFlipRotation = false;
+		//Check if the algo is valid
+		if (!extractSteps(algorithm))
+			return 0;
 
 		//TODO: avoid the time required for string operations while solving without animation
 		if (!animate_)
 		{
 			if (isScrambling_)
+			{
+				scramblingSteps_ += algoSteps_.size();
 				scramblingAlgo_ += algorithm;
+			}
 			else
+			{
+				solutionSteps_ += algoSteps_.size();
 				solution_ += algorithm;
+			}
 		}
 
-		for (int i = 0; i < algorithm.length();)
+		for (int i = 0; i < algoSteps_.size(); ++i)
 		{
-			int start = i;
-			char face = algorithm[i];
-			if (face == ' ')
-			{
-				++i;
-				continue;
-			}
-
-			int layerIndexFrom = 1;
-			int layerIndexTo = 1;
-			++i;
-			if (i < algorithm.length() && algorithm[i] == '(')
-			{
-				int layer = 0;
-				for(++i; i < algorithm.length() && algorithm[i] != '-' && algorithm[i] != ')'; ++i)
-					layer = layer * 10 + (algorithm[i] - '0');
-
-				layerIndexFrom = layer;
-				layerIndexTo = layer;
-
-				if(i < algorithm.length() && algorithm[i] == '-')
-				{
-					int layer = 0;
-					for (++i; i < algorithm.length() && algorithm[i] != ')'; ++i)
-						layer = layer * 10 + (algorithm[i] - '0');
-
-					layerIndexTo = layer;
-				}
-
-				++i;
-			}
-
-			// Check if prime operation
-			bool isPrime = false;
-			if (i < algorithm.length() && algorithm[i] == '\'')
-			{
-				isPrime = true;
-				++i;
-			}
-			// Check if multiple rotations
-			int numRotations = 1;
-			int rotations = 0;
-			for(; i < algorithm.length() && '0' <= algorithm[i] && algorithm[i] <= '9'; ++i)
-			{
-				rotations = rotations * 10 + (numRotations = algorithm[i] - '0');
-			}
-			if (rotations > 0)
-				numRotations = rotations;
-
-			string step{ algorithm.begin() + start, i < algorithm.size() ? algorithm.begin() + i : algorithm.end() };
-			if (isScrambling_)
-				++scramblingSteps_;
-			else
-				++solutionSteps_;
-
 			if (animate_)
 			{
 				if (isScrambling_)
-					scramblingAlgo_ += step;
+				{
+					++scramblingSteps_;
+					scramblingAlgo_ += algoSteps_[i].thisStep;
+				}
 				else
 				{
-					solution_ += step;
+					++solutionSteps_;
+					solution_ += algoSteps_[i].thisStep;
 
 					HRClock::time_point end_time = HRClock::now();
 					std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
 					duration_ = time_span.count();
 				}
 			}
-			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations);
+			applyStep(algoSteps_[i].face, algoSteps_[i].layerIndexFrom, algoSteps_[i].layerIndexTo, algoSteps_[i].isPrime, algoSteps_[i].numRotations);
 		}
 
-		return solutionSteps_ - solutionSteps;
+		return algoSteps_.size();
+	}
+
+	bool RubiksCubeModel_v7::extractSteps(const string& algorithm)
+	{
+		algoSteps_.clear();
+		invalidStep_.clear();
+
+		const string validFaces{ "FZBLXRUYD" }; //every step starts with one of the faces
+
+		for (int start = 0; start < algorithm.length();)
+		{
+			auto it = algorithm.end();
+			size_t pos = algorithm.find_first_of(validFaces, start + 1);
+			if (pos != string::npos)
+				it = algorithm.begin() + pos;
+			string step{ algorithm.begin() + start, it };
+			start = pos;
+
+			g_bFlipRotation = false;
+			for (int i = 0; i < step.length();)
+			{
+				bool valid = true;
+
+				int start = i;
+				char face = step[i];
+				if (face == ' ')
+				{
+					++i;
+					continue;
+				}
+
+				if (validFaces.find_first_of(face) == string::npos)
+					valid = false;
+
+				unsigned int layerIndexFrom = 1;
+				unsigned int layerIndexTo = 1;
+				++i;
+				if (i < step.length() && step[i] == '(')
+				{
+					int layer = 0;
+					for (++i; i < step.length() && step[i] != '-' && step[i] != ')'; ++i)
+					{
+						if ('0' <= step[i] && step[i] <= '9')
+							layer = layer * 10 + (step[i] - '0');
+						else
+							valid = false;
+					}
+
+					layerIndexFrom = layer;
+					layerIndexTo = layer;
+
+					if (i < step.length() && step[i] == '-')
+					{
+						int layer = 0;
+						for (++i; i < step.length() && step[i] != ')'; ++i)
+						{
+							if ('0' <= step[i] && step[i] <= '9')
+								layer = layer * 10 + (step[i] - '0');
+							else
+								valid = false;
+						}
+
+						layerIndexTo = layer;
+					}
+
+					++i;
+				}
+
+				// Check if prime operation
+				bool isPrime = false;
+				if (i < step.length() && step[i] == '\'')
+				{
+					isPrime = true;
+					++i;
+				}
+				// Check if multiple rotations
+				unsigned int numRotations = 1;
+				unsigned int rotations = 0;
+				for (; i < step.length() && '0' <= step[i] && step[i] <= '9'; ++i)
+				{
+					rotations = rotations * 10 + (numRotations = step[i] - '0');
+				}
+				if (rotations > 0)
+					numRotations = rotations;
+
+				//string step{ algorithm.begin() + start, i < algorithm.size() ? algorithm.begin() + i : algorithm.end() };
+
+				if (!valid)
+				{
+					invalidStep_ = step;
+					return false;
+				}
+
+				algoSteps_.push_back({ step, face, layerIndexFrom, layerIndexTo, isPrime, numRotations });
+			}
+		}
+
+		return true;
 	}
 
 	//const CVector3& RubiksCubeModel_v7::getRotationAxis(Groups rotationSection)

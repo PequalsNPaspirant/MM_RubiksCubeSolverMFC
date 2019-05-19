@@ -317,6 +317,7 @@ namespace mm {
 		bool getAnimate() { return animate_; }
 		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
 		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
+		bool scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep) override;
 		//int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
 		int applyAlgorithm(const string& algorithm);
 		string generateScramblingAlgo(int length, bool includeNonStandardRotations) override;
@@ -336,6 +337,20 @@ namespace mm {
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
 		int getSize() const { return size_; }
+
+	private:
+		bool extractSteps(const string& algo);
+		string invalidStep_;
+		struct AlgoStep
+		{
+			string thisStep;
+			char face;
+			unsigned int layerIndexFrom; 
+			unsigned int layerIndexTo;
+			bool isPrime;
+			unsigned int numRotations;
+		};
+		vector<AlgoStep> algoSteps_;
 
 	private:
 		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation

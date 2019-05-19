@@ -478,7 +478,8 @@ namespace mm {
 
 	void RubiksCubeSolverGUI::applyAlgorithm(const string& algo, bool animate)
 	{
-		scene_.scramble(algo, animate);
+		string invalidStep;
+		scene_.scramble(algo, animate, invalidStep);
 	}
 
 	unique_ptr<RubiksCubeModel> RubiksCubeSolverGUI::replaceModelBy(const string& modelName, int size, bool animate)
@@ -1416,9 +1417,10 @@ namespace mm {
 		//	+ L"\nNumber of steps: " + to_wstring(25);
 		//if (MessageBox(g_hWnd, wMessage.c_str(),
 		//	g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
-		{
-			scene_.scramble(scramblingAlgo_, animate_);
-		}
+		
+		string invalidStep;
+		if(!scene_.scramble(scramblingAlgo_, animate_, invalidStep))
+			RubiksCubeSolverUtils::CreateOkDialog("Invalid scrambling algo! The below step is not a valid step.\nInvalid step: " + invalidStep);
 
 		//if (!animate_)
 		//	redrawWindow();
@@ -1468,7 +1470,8 @@ namespace mm {
 
 				//Go back to original position
 				bool animate = false;
-				scene_.scramble(scramblingAlgo, animate);
+				string invalidStep;
+				scene_.scramble(scramblingAlgo, animate, invalidStep);
 				animate = true;
 				solution2 = scene_.Solve(solutionSteps, duration, animate);
 				//TODO: Check if both solutions are same or not

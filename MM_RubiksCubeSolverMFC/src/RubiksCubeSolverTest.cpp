@@ -53,7 +53,7 @@ namespace mm {
 	const int RubiksCubeSolverTest::numAlgoOfEachLength = 1;
 	vector<string> RubiksCubeSolverTest::genericModels{
 		//"RubiksCubeModel_v5",
-		"RubiksCubeModel_v6",
+		//"RubiksCubeModel_v6",
 		"RubiksCubeModel_v7"
 	};
 

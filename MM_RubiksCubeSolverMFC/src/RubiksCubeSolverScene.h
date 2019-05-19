@@ -59,7 +59,7 @@ namespace mm {
 		void setAnimate(bool animate);
 		void Reset(bool animate);
 		string generateScramblingAlgo(int length);
-		void scramble(const string& algo, bool animate);
+		bool scramble(const string& algo, bool animate, string& invalidStep);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
 		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();

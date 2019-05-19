@@ -285,9 +285,9 @@ namespace mm {
 		return rubicCubeModel_->generateScramblingAlgo(length, includeNonStandardRotations);
 	}
 
-	void RubiksCubeSolverScene::scramble(const string& algo, bool animate)
+	bool RubiksCubeSolverScene::scramble(const string& algo, bool animate, string& invalidStep)
 	{
-		rubicCubeModel_->scramble(algo, animate, refUI_);
+		return rubicCubeModel_->scramble(algo, animate, refUI_, invalidStep);
 	}
 
 	string RubiksCubeSolverScene::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)
