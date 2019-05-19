@@ -26,10 +26,12 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
 using namespace std;
 
 //#include "RubiksCubeSolverMainWindow.h"
+#include "MM_RubiksCubeSolverMFCDlg.h"
 
 namespace mm {
 
@@ -40,7 +42,7 @@ namespace mm {
 		static bool CreateYesNoDialog(const string& message)
 		{
 			wstring wMessage(message.begin(), message.end());
-			if (MessageBox(NULL, wMessage.c_str(), L"", MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+			if (MessageBox(NULL, wMessage.c_str(), L"Choose Option:", MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 				return true;
 			else
 				return false;
@@ -49,7 +51,7 @@ namespace mm {
 		static void CreateOkDialog(const string& message)
 		{
 			wstring wMessage(message.begin(), message.end());
-			MessageBox(NULL, wMessage.c_str(), L"", MB_OK | MB_ICONINFORMATION | MB_APPLMODAL);
+			MessageBox(NULL, wMessage.c_str(), L"Warning!", MB_OK | MB_ICONINFORMATION | MB_APPLMODAL);
 		}
 
 		static void RunTimeAssert(bool expression, const string& msg = "")
@@ -69,12 +71,28 @@ namespace mm {
 
 		static void displayMessage(const string& message)
 		{
-
+			std::vector<string> vmsg{ message };
+			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage(vmsg);
 		}
 
 		static void displayMessage(int sizeIn, int scramblingSteps, const string& scramblingAlgo,
-			int solutionSteps, const string& solution, unsigned long long duration)
+			int solutionSteps, const string& solution, const string& duration)
 		{
+			string size = to_string(sizeIn);
+			string rubikCubeSize("Rubik's Cube Size: " + size + "x" + size + "x" + size);
+			string scramblingStepsStr("Scrambling Steps: " + (scramblingSteps > 0 ? to_string(scramblingSteps) : ""));
+			string scrambleMsg("Scrambling Algorithm: " + scramblingAlgo);
+			string solutionStepsStr("Solution Steps: " + (solutionSteps > 0 ? to_string(solutionSteps) : ""));
+			string solutionMsg("Solution Algorithm: " + solution);
+
+			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage({
+				rubikCubeSize,
+				scramblingStepsStr,
+				scrambleMsg,
+				solutionStepsStr,
+				solutionMsg,
+				duration
+			});
 		}
 	};
 

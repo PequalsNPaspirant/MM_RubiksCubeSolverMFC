@@ -444,13 +444,13 @@ namespace mm {
 		duration_ = 0;
 
 		RubiksCubeSolver_NxNxN solver(*this);
-		using HRClock = std::chrono::high_resolution_clock;
-		HRClock::time_point start_time = HRClock::now();
+		//using HRClock = std::chrono::high_resolution_clock;
+		//HRClock::time_point start_time = HRClock::now();
+		startTime_ = HRClock::now();
 		string solution = solver.solve(solutionSteps);
 		HRClock::time_point end_time = HRClock::now();
-		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		duration = time_span.count();
-		duration_ = duration;
+		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
+		duration_ = time_span.count();
 
 		return solution;
 	}
@@ -1044,6 +1044,7 @@ namespace mm {
 		{
 			scramblingSteps_ = 0;
 			scramblingAlgo_ = "";
+			//startTime_ = HRClock::now();
 		}
 		isScrambling_ = true;
 		int steps = applyAlgorithm(algorithm);
@@ -1127,7 +1128,13 @@ namespace mm {
 				if (isScrambling_)
 					scramblingAlgo_ += step;
 				else
+				{
 					solution_ += step;
+
+					HRClock::time_point end_time = HRClock::now();
+					std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
+					duration_ = time_span.count();
+				}
 			}
 			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations);
 		}
@@ -1467,6 +1474,7 @@ namespace mm {
 		if (!includeNonStandardRotations)
 			numNotations = standardRotations;
 		string retVal;
+		srand(time(NULL));
 		for (int i = 0; i < length; ++i)
 		{
 			int index = rand() % numNotations;

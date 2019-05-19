@@ -52,11 +52,11 @@ namespace mm {
 		RubiksCubeSolverGUI& operator=(RubiksCubeSolverGUI&&) = delete;
 		~RubiksCubeSolverGUI();
 		void initialize(HWND hWnd);
-		void Scramble(bool animateIn);
+		void Scramble(const string& scramblingAlgo, bool animateIn);
 		void Solve(bool animateIn);
 		void runTests(bool animateIn);
 		void fitToScreen();
-		void setRubiksCubeSize(unsigned int size);
+		bool setRubiksCubeSize(unsigned int size);
 		void setAnimationSpeed(unsigned int speed);
 		void resetRubiksCube();
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
@@ -125,6 +125,7 @@ namespace mm {
 		bool getInterruptAnimation() { return interruptAnimation_; }
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
 		void displayUpdatedStats();
+		string generateScramblingAlgo(int length);
 
 		//Menu Handlers
 		void Reset(bool animate);
@@ -163,6 +164,7 @@ namespace mm {
 		int framesPerRotation_;
 		int sleepTimeMilliSec_;
 		unsigned int rubiksCubeSize_;
+		string scramblingAlgo_;
 
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;

@@ -111,8 +111,9 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
-	void RubiksCubeSolverGUI::Scramble(bool animateIn)
+	void RubiksCubeSolverGUI::Scramble(const string& scramblingAlgo, bool animateIn)
 	{
+		scramblingAlgo_ = scramblingAlgo;
 		animate_ = animateIn;
 		firstGenCommand_ = firstGenerationCommands::eScramble;
 		activateRenderingThread();
@@ -129,20 +130,29 @@ namespace mm {
 		firstGenCommand_ = firstGenerationCommands::eRunTests;
 		activateRenderingThread();
 	}
-	void RubiksCubeSolverGUI::setRubiksCubeSize(unsigned int size)
+	bool RubiksCubeSolverGUI::setRubiksCubeSize(unsigned int size)
 	{
-		firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
-		rubikCubeSize_ = size;
-		activateRenderingThread();
+		if (0 < size && size < 101)
+		{
+			firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
+			rubikCubeSize_ = size;
+			return activateRenderingThread();
+		}
+		else
+		{
+			RubiksCubeSolverUtils::CreateOkDialog("The Rubik's cube size must be in the range [1, 100]");
+			return false;
+		}
 	}
 
 	//second generation commands
 	void RubiksCubeSolverGUI::resetRubiksCube()
 	{
-		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		if(firstGenCommand_ != firstGenerationCommands::eNoCommand) //There is first generation command active
+			interruptAnimation_ = true;
+
 		secondGenCommand_ = secondGenerationCommands::eResetRubiksCube;
-		interruptAnimation_ = true;
-		activateRenderingThread();
+		activateRenderingThread(true);
 	}
 
 	//Third generation commands
@@ -313,6 +323,8 @@ namespace mm {
 					//bool animate = true;
 					//Reset(animate);
 					interruptAnimation_ = false; //reset the flag
+					firstGenCommand_ = firstGenerationCommands::eNoCommand;
+					//commandHandlerSecondGen();
 				}
 				commandHandlerSecondGen();
 				renderNow_.store(false, std::memory_order_release);
@@ -466,17 +478,18 @@ namespace mm {
 	unique_ptr<RubiksCubeModel> RubiksCubeSolverGUI::replaceModelBy(const string& modelName, int size, bool animate)
 	{
 		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(modelName, size);
-		if(animate)
-			activateRenderingThread();
+		//if(animate)
+		//	activateRenderingThread();
 			//redrawWindow();
+		displayUpdatedStats();
 		return std::move(originalModel);
 	}
 
 	unique_ptr<RubiksCubeModel> RubiksCubeSolverGUI::replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate)
 	{
 		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(std::move(newModel));
-		if (animate)
-			activateRenderingThread();
+		//if (animate)
+		//	activateRenderingThread();
 			//redrawWindow();
 		return std::move(originalModel);
 	}
@@ -490,6 +503,26 @@ namespace mm {
 	void RubiksCubeSolverGUI::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration)
 	{
 		scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+	}
+
+	string getCommaSeparatedTimeDuration(unsigned long long duration)
+	{
+		string durationStr = "000,000.000,000,000";
+		int pos = durationStr.length() - 1;
+		for (; pos > 0 && duration > 0; pos)
+		{
+			if (durationStr[--pos] == '0')
+			{
+				durationStr[pos] = '0' + duration % 10;
+				duration /= 10;
+			}
+		}
+		if (pos > 6)
+			pos = 6;
+		durationStr = durationStr.substr(pos);
+		durationStr += " sec";
+
+		return durationStr;
 	}
 
 	void RubiksCubeSolverGUI::displayUpdatedStats()
@@ -512,7 +545,8 @@ namespace mm {
 			string solution;
 			unsigned long long duration;
 			scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-			RubiksCubeSolverUtils::displayMessage(scene_.getRubiksCubeSize(), scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+			RubiksCubeSolverUtils::displayMessage(scene_.getRubiksCubeSize(), scramblingSteps, scramblingAlgo, solutionSteps, solution, 
+				"Time required to solve: " + getCommaSeparatedTimeDuration(duration));
 		//}
 		//else
 		//{
@@ -545,6 +579,11 @@ namespace mm {
 			//HDC wdc = GetWindowDC(g_hWnd);
 			//DeleteDC(wdc);
 		//}
+	}
+
+	string RubiksCubeSolverGUI::generateScramblingAlgo(int length)
+	{
+		return scene_.generateScramblingAlgo(length);
 	}
 
 	//string getCommaSeparatedTimeDuration(unsigned long long duration)
@@ -900,8 +939,8 @@ namespace mm {
 			scene_.g_cCamera.Rotate(rotate);
 		if(tilt != 0)
 			scene_.g_cCamera.Tilt(tilt);
-		firstGenCommand_ = firstGenerationCommands::eNoCommand;
-		activateRenderingThread();
+		//firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		activateRenderingThread(true);
 			//redrawWindow();
 		//}
 		/*
@@ -1066,8 +1105,8 @@ namespace mm {
 		//float distance = rotations * 1.0f;
 
 		scene_.g_cCamera.Move(distance);
-		firstGenCommand_ = firstGenerationCommands::eNoCommand;
-		activateRenderingThread();
+		//firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		activateRenderingThread(true);
 		//redrawWindow();
 	}
 
@@ -1082,9 +1121,9 @@ namespace mm {
 		//	MoveWindow(g_hWndMessage, 0, 0, cx, messageWndHeight, false);
 		//	GetClientRect(hWnd, &g_rWnd);
 		//}
-		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		//firstGenCommand_ = firstGenerationCommands::eNoCommand;
 		//std::this_thread::sleep_for(std::chrono_duration<std::chrono::milliseconds>(10));
-		activateRenderingThread();
+		activateRenderingThread(true);
 		//redrawWindow();
 	}
 
@@ -1363,7 +1402,7 @@ namespace mm {
 		//g_hRC = wglCreateContext(g_hDC);
 		//wglMakeCurrent(g_hDC, g_hRC);
 
-		string algo = scene_.generateScramblingAlgo(25);
+		//string algo = scene_.generateScramblingAlgo(25);
 		//wstring wAlgo(algo.begin(), algo.end());
 		//wstring wMessage = L"Scramble using following Algorithm?";
 		//wMessage = wMessage
@@ -1372,7 +1411,7 @@ namespace mm {
 		//if (MessageBox(g_hWnd, wMessage.c_str(),
 		//	g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			scene_.scramble(algo, animate_);
+			scene_.scramble(scramblingAlgo_, animate_);
 		}
 
 		//if (!animate_)
@@ -1407,9 +1446,10 @@ namespace mm {
 	string RubiksCubeSolverGUI::Solve(unsigned int& solutionSteps, unsigned long long& duration)
 	{
 		string solution = scene_.Solve(solutionSteps, duration, animate_);
+		displayUpdatedStats();
 		if (!animate_)
 		{
-			displayUpdatedStats();
+			//displayUpdatedStats();
 			bool userDecision = RubiksCubeSolverUtils::CreateYesNoDialog("Do you want to see the animation of the solution?");
 			if (userDecision)
 			{

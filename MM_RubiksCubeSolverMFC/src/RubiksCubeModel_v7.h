@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <memory>
 #include <unordered_set>
+#include <chrono>
 using namespace std;
 
 #include <gl\gl.h>
@@ -398,6 +399,8 @@ namespace mm {
 		int solutionSteps_;
 		string solution_;
 		unsigned long long duration_;
+		using HRClock = std::chrono::high_resolution_clock;
+		HRClock::time_point startTime_;
 		
 		static const double scale_;
 		bool animate_;
