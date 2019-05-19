@@ -68,6 +68,7 @@ namespace mm {
 			scene_.setAnimate(animate_);
 		}
 		bool activateRenderingThread(bool force = false);
+		void exitUI();
 
 	private:
 		void ScrambleImpl();
@@ -176,6 +177,7 @@ namespace mm {
 		//std::atomic<bool> breakOperation_{ false };
 		//std::mutex mutex_;
 		bool interruptAnimation_{ false }; 
+		bool keepRunning{ true };
 	};
 
 }

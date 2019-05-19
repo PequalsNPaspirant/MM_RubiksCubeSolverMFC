@@ -111,6 +111,12 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
+	void RubiksCubeSolverGUI::exitUI()
+	{
+		interruptAnimation_ = true;
+		keepRunning = false;
+	}
+
 	void RubiksCubeSolverGUI::Scramble(const string& scramblingAlgo, bool animateIn)
 	{
 		scramblingAlgo_ = scramblingAlgo;
@@ -305,7 +311,7 @@ namespace mm {
 	{
 		createGraphicsArea();
 
-		while (true)
+		while (keepRunning)
 		{
 			//bool expected = true;
 			//bool desired = false;
