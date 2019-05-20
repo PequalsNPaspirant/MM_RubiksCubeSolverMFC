@@ -515,7 +515,7 @@ namespace mm {
 	string getCommaSeparatedTimeDuration(unsigned long long duration)
 	{
 		string durationStr = "000,000.000,000,000";
-		int pos = durationStr.length() - 1;
+		int pos = durationStr.length();
 		for (; pos > 0 && duration > 0; pos)
 		{
 			if (durationStr[--pos] == '0')
