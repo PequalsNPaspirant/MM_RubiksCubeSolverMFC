@@ -66,6 +66,7 @@ namespace mm {
 		void fitToScreen();
 		int getRubiksCubeSize() { return rubiksCubeSize_; }
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
+		bool pauseAnimation(bool pause);
 
 		//deleted functions
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;

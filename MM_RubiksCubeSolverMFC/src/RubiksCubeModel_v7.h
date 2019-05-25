@@ -333,6 +333,8 @@ namespace mm {
 		string getModelName() override;
 		int getDimension() override;
 
+		bool pauseAnimation(bool pause) override;
+
 		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
@@ -351,6 +353,7 @@ namespace mm {
 			unsigned int numRotations;
 		};
 		vector<AlgoStep> algoSteps_;
+		bool pauseAnumation_{ false };
 
 	private:
 		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation

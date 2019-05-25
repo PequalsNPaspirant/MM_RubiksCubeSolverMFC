@@ -1031,6 +1031,12 @@ namespace mm {
 		return size_;
 	}
 
+	bool RubiksCubeModel_v7::pauseAnimation(bool pause)
+	{
+		pauseAnumation_ = pause;
+		return pauseAnumation_;
+	}
+
 	void RubiksCubeModel_v7::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		animate_ = animate;
@@ -1378,6 +1384,15 @@ namespace mm {
 			{
 				if (pUi_->getInterruptAnimation())
 					throw false;
+
+				while (pauseAnumation_)
+				{
+					//We should be able to reset cube while animation is paused
+					if (pUi_->getInterruptAnimation())
+						throw false;
+
+					pUi_->redrawWindow();
+				}
 
 				g_nRotationAngle += stepAngle;
 				pUi_->redrawWindow();

@@ -593,6 +593,11 @@ namespace mm {
 		return scene_.generateScramblingAlgo(length);
 	}
 
+	bool RubiksCubeSolverGUI::pauseAnimation(bool pause)
+	{
+		return scene_.pauseAnimation(pause);
+	}
+
 	//string getCommaSeparatedTimeDuration(unsigned long long duration)
 	//{
 	//	string durationStr = "000,000.000,000,000";
@@ -1223,7 +1228,7 @@ namespace mm {
 					//CreateOkDialog("Another animation is in progress. Please have patience!");
 				if(firstGenCommand_ != firstGenerationCommands::eNoCommand)
 				{
-					RubiksCubeSolverUtils::CreateOkDialog("Another animation is in progress. Please have patience!");
+					RubiksCubeSolverUtils::CreateOkDialog("Another command is in progress. Please have patience!");
 					return false;
 				}
 			}

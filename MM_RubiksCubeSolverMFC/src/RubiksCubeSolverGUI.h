@@ -127,6 +127,7 @@ namespace mm {
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
 		void displayUpdatedStats();
 		string generateScramblingAlgo(int length);
+		bool pauseAnimation(bool pause);
 
 		//Menu Handlers
 		void Reset(bool animate);

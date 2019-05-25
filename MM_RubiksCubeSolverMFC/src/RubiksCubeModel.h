@@ -85,7 +85,8 @@ namespace mm {
 		//virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}
 
 		virtual bool isAlgoValid(const string& algo, string& invalidStep) { return false; }
-
+		virtual bool pauseAnimation(bool pause) { return false; }
+			
 		virtual ~RubiksCubeModel() = 0
 		{
 		}
