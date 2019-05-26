@@ -69,9 +69,9 @@ namespace mm {
 			}
 		}
 
-		static void displayMessage(const string& message)
+		static void displayMessage(const std::vector<string>& vmsg)
 		{
-			std::vector<string> vmsg{ message };
+			//std::vector<string> vmsg{ message };
 			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage(vmsg);
 		}
 

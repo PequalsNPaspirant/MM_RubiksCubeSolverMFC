@@ -90,7 +90,7 @@ namespace mm {
 
 		RubiksCubeSolverUtils::CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed and written to .csv file!");
 
-		refUI_.replaceModelBy(std::move(originalModel), true);
+		refUI_.replaceModelBy(std::move(originalModel), animate);
 
 		return true;
 	}
@@ -240,13 +240,13 @@ namespace mm {
 					{
 						if (!animate)
 						{
-							string message{
-								"Algo for Rubik's size: " + to_string(size) + " of maxSize " + to_string(maxSize) +
-								" | Algo number: " + to_string(i) + " of " + to_string(algos.size()) +
-								" | Rubik's size: " + to_string(testInfoAggregateSet[j].size_) +
-								" | Executing test number: " + to_string(testNum + 1)							
+							const std::vector<string> vecMessages{
+								{"Algo for Rubik's size: " + to_string(size) + " of maxSize " + to_string(maxSize)},
+								{"Algo number: " + to_string(i + 1) + " of " + to_string(algos.size())},
+								{"Rubik's size: " + to_string(testInfoAggregateSet[j].size_)},
+								{"Executing test number: " + to_string(testNum + 1)}
 							};
-							RubiksCubeSolverUtils::displayMessage(message);
+							RubiksCubeSolverUtils::displayMessage(vecMessages);
 						}
 
 						testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);

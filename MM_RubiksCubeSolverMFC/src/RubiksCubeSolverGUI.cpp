@@ -114,7 +114,7 @@ namespace mm {
 	void RubiksCubeSolverGUI::exitUI()
 	{
 		interruptAnimation_ = true;
-		keepRunning = false;
+		keepRunning_ = false;
 	}
 
 	void RubiksCubeSolverGUI::Scramble(const string& scramblingAlgo, bool animateIn)
@@ -311,7 +311,7 @@ namespace mm {
 	{
 		createGraphicsArea();
 
-		while (keepRunning)
+		while (keepRunning_)
 		{
 			//bool expected = true;
 			//bool desired = false;
@@ -488,7 +488,8 @@ namespace mm {
 		//if(animate)
 		//	activateRenderingThread();
 			//redrawWindow();
-		displayUpdatedStats();
+		if(animate)
+			displayUpdatedStats();
 		return std::move(originalModel);
 	}
 
@@ -1459,10 +1460,10 @@ namespace mm {
 	string RubiksCubeSolverGUI::Solve(unsigned int& solutionSteps, unsigned long long& duration)
 	{
 		string solution = scene_.Solve(solutionSteps, duration, animate_);
-		displayUpdatedStats();
-		if (!animate_)
+		//displayUpdatedStats();
+		if (!animate_ && !devTestingMode_)
 		{
-			//displayUpdatedStats();
+			displayUpdatedStats();
 			bool userDecision = RubiksCubeSolverUtils::CreateYesNoDialog("Do you want to see the animation of the solution?");
 			if (userDecision)
 			{
@@ -1488,7 +1489,9 @@ namespace mm {
 
 	void RubiksCubeSolverGUI::runRubiksCubeTests()
 	{
+		devTestingMode_ = true;
 		tester_.testRubiksCube(animate_);
+		devTestingMode_ = false;
 	}
 
 	//void RubiksCubeSolverGUI::fitToScreenImpl()

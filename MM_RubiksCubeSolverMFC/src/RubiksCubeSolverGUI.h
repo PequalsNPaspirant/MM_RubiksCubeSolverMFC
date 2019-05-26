@@ -142,7 +142,9 @@ namespace mm {
 		void OnRubiksCubeChanged(HWND hWnd);
 		void OnPaint(HWND hWnd);
 		BOOL OnEraseBackground(HWND hwnd, HDC hdc);
+		//void setDevTestingMode(bool devTestingMode) { devTestingMode_ = devTestingMode; }
 
+	private:
 		HGLRC g_hRC;
 		HACCEL g_hAccelTable;
 		int messageWndHeight;
@@ -178,7 +180,8 @@ namespace mm {
 		//std::atomic<bool> breakOperation_{ false };
 		//std::mutex mutex_;
 		bool interruptAnimation_{ false }; 
-		bool keepRunning{ true };
+		bool keepRunning_{ true };
+		bool devTestingMode_{ false };
 	};
 
 }

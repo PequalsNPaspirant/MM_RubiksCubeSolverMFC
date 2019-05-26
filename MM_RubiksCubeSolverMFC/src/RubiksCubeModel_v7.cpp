@@ -1371,7 +1371,7 @@ namespace mm {
 
 		if (animate_)
 		{
-			//display step before starting animation for that step:
+			//display step before starting animation for that step
 			pUi_->displayUpdatedStats();
 			g_bRotating = true;
 			int numTotalFrames = pUi_->getFramesPerRotation() * numRotations;
