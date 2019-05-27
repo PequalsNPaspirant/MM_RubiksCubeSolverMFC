@@ -54,7 +54,8 @@ namespace mm {
 	vector<string> RubiksCubeSolverTest::genericModels{
 		//"RubiksCubeModel_v5",
 		//"RubiksCubeModel_v6",
-		"RubiksCubeModel_v7"
+		//"RubiksCubeModel_v7",
+		"RubiksCubeModel_v8"
 	};
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
@@ -183,7 +184,7 @@ namespace mm {
 		{
 			if(size >= 4)
 				includeNonStandardRotations = true;
-			unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v6", size);
+			unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v8", size);
 
 			//Add 10 x 100 = 1000 random srambling algos
 			for (int len : scramblingAlgoLengths)

@@ -1,3 +1,14 @@
 Debug
 v15
 /MM_RubiksCubeSolverMFC/*.aps
+/MM_RubiksCubeSolverMFC/x64/Release/*.obj
+/MM_RubiksCubeSolverMFC/x64/Release/MM_Rubik.B983CF3D.tlog/*.tlog
+/MM_RubiksCubeSolverMFC/x64/Release/MM_Rubik.B983CF3D.tlog/*.lastbuildstate
+/x64/Release/*.exe
+/x64/Release/*.iobj
+/x64/Release/*.ipdb
+/x64/Release/*.pdb
+/MM_RubiksCubeSolverMFC/x64/Release/*.pdb
+/MM_RubiksCubeSolverMFC/x64/Release/*.pch
+/MM_RubiksCubeSolverMFC/x64/Release/*.log
+/MM_RubiksCubeSolverMFC/x64/Release/*.res
