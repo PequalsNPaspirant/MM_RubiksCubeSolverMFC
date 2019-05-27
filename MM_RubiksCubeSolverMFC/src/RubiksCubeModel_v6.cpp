@@ -448,7 +448,7 @@ namespace mm {
 	}
 
 	void RubiksCubeModel_v6::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
-		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
 	{
 		size = size_;
 		scramblingSteps = scramblingSteps_;

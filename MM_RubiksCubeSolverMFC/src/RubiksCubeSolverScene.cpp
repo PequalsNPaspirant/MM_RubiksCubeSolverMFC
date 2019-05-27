@@ -340,9 +340,9 @@ namespace mm {
 	}
 
 	void RubiksCubeSolverScene::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
-		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
 	{
-		rubicCubeModel_->getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+		rubicCubeModel_->getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration, status);
 	}
 }
 

@@ -326,7 +326,7 @@ namespace mm {
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
-		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration) override;
+		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) override;
 		//void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
@@ -413,7 +413,8 @@ namespace mm {
 
 		int scramblingSteps_;
 		string scramblingAlgo_;
-		bool isScrambling_;
+		bool isScrambling_{ false };
+		bool isSolving_{ false };
 		int solutionSteps_;
 		string solution_;
 		unsigned long long duration_;
@@ -424,6 +425,22 @@ namespace mm {
 		bool animate_;
 		//RubiksCubeSolverGUI& ui_;
 		RubiksCubeSolverGUI* pUi_;
+
+		static const vector<string> statusStrings;
+
+		enum class status
+		{
+			scrambled = 0,
+			cross,
+			F2L,
+			OLL,
+			PLL,
+			solved,
+
+			eMaxStatus
+		};
+
+		status status_{ status::solved };
 
 	public:
 		int getScramblingSteps() { return scramblingSteps_; }

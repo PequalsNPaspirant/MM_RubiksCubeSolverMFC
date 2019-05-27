@@ -52,6 +52,14 @@ namespace mm {
 
 	const int RubiksCubeModel_v7::Cube::FACE_COUNT /* = 6*/;
 	const double RubiksCubeModel_v7::scale_ = 1.0;
+	const vector<string> RubiksCubeModel_v7::statusStrings{
+		"Scrambled",
+		"Cross",
+		"First Two Layers",
+		"Orient Last Layer",
+		"Permute Last Layer",
+		"Solved"
+	};
 
 	const RubiksCubeModel_v7::ColorRGB RubiksCubeModel_v7::ColorRGB::RGBColors[7] = {
 		ColorRGB{ 255, 255, 0 },
@@ -405,6 +413,8 @@ namespace mm {
 			}
 		}
 
+		status_ = status::solved;
+
 		if (animate_ && pUi_)
 		{
 			pUi_->redrawWindow();
@@ -443,6 +453,7 @@ namespace mm {
 		solution_ = "";
 		duration_ = 0;
 
+		isSolving_ = true;
 		RubiksCubeSolver_NxNxN solver(*this);
 		//using HRClock = std::chrono::high_resolution_clock;
 		//HRClock::time_point start_time = HRClock::now();
@@ -452,11 +463,14 @@ namespace mm {
 		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
 		duration_ = time_span.count();
 
+		isSolving_ = false;
+		status_ = status::solved;
+
 		return solution;
 	}
 
 	void RubiksCubeModel_v7::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
-		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
 	{
 		size = size_;
 		scramblingSteps = scramblingSteps_;
@@ -464,6 +478,28 @@ namespace mm {
 		solutionSteps = solutionSteps_;
 		solution = solution_;
 		duration = duration_;
+		
+		string statusStr{ "Status: " };
+		for (int i = 0; i < static_cast<int>(status::eMaxStatus); ++i)
+		{
+			if (i == static_cast<int>(status_))
+				statusStr += "[";
+			statusStr += RubiksCubeModel_v7::statusStrings[i];
+			if (i == static_cast<int>(status_))
+				statusStr += "]";
+			if(i < static_cast<int>(status::eMaxStatus) - 1)
+				statusStr += " => ";
+		}
+
+		static int hourglassIndex = -1;
+		static const string hourglass{ "|/-\\" };
+		hourglassIndex = (++hourglassIndex) % hourglass.length();
+		if (isScrambling_ || isSolving_)
+		{
+			statusStr += " ";
+			statusStr += string{ hourglass[hourglassIndex] };
+		}
+		status = statusStr;
 	}
 
 	//void RubiksCubeModel_v7::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
@@ -1053,8 +1089,15 @@ namespace mm {
 			//startTime_ = HRClock::now();
 		}
 		isScrambling_ = true;
+		status_ = status::scrambled;
+
 		int steps = applyAlgorithm(algorithm);
 		isScrambling_ = false;
+
+		if(isSolved())
+			status_ = status::solved;
+		else
+			status_ = status::scrambled;
 	}
 
 	bool RubiksCubeModel_v7::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
@@ -1073,8 +1116,13 @@ namespace mm {
 			//startTime_ = HRClock::now();
 		}
 		isScrambling_ = true;
+		status_ = status::scrambled;
 		int steps = applyAlgorithm(algorithm);
 		isScrambling_ = false;
+		if (isSolved())
+			status_ = status::solved;
+		else
+			status_ = status::scrambled;
 
 		if (steps == 0)
 		{
@@ -1636,10 +1684,15 @@ namespace mm {
 			positionTheCube();
 		}
 
+		rubiksCube_.status_ = status::cross;
 		buildCross();
+		rubiksCube_.status_ = status::F2L;
 		buildF2L();
+		rubiksCube_.status_ = status::OLL;
 		buildOLL();
+		rubiksCube_.status_ = status::PLL;
 		buildPLL();
+		
 		positionTheCube();
 
 		//verify

@@ -124,7 +124,7 @@ namespace mm {
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 		void setSleepTimeMilliSec(int val) { sleepTimeMilliSec_ = val; }
 		bool getInterruptAnimation() { return interruptAnimation_; }
-		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
+		//void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status);
 		void displayUpdatedStats();
 		string generateScramblingAlgo(int length);
 		bool pauseAnimation(bool pause);
