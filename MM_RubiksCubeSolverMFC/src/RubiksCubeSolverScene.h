@@ -65,7 +65,7 @@ namespace mm {
 		bool isSolved();
 		void fitToScreen();
 		int getRubiksCubeSize() { return rubiksCubeSize_; }
-		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
+		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status);
 		bool pauseAnimation(bool pause);
 
 		//deleted functions

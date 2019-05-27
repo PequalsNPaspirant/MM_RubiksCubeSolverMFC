@@ -321,7 +321,7 @@ namespace mm {
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
-		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration) override;
+		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;

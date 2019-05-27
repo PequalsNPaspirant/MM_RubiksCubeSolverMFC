@@ -508,10 +508,10 @@ namespace mm {
 	}
 
 	
-	void RubiksCubeSolverGUI::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration)
-	{
-		scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-	}
+	//void RubiksCubeSolverGUI::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
+	//{
+	//	scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration, status);
+	//}
 
 	string getCommaSeparatedTimeDuration(unsigned long long duration)
 	{
@@ -552,9 +552,27 @@ namespace mm {
 			unsigned int solutionSteps;
 			string solution;
 			unsigned long long duration;
-			scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-			RubiksCubeSolverUtils::displayMessage(scene_.getRubiksCubeSize(), scramblingSteps, scramblingAlgo, solutionSteps, solution, 
-				"Time required to solve: " + getCommaSeparatedTimeDuration(duration));
+			string statusStr;
+			scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration, statusStr);
+
+			string sizeStr{ to_string(scene_.getRubiksCubeSize()) };
+			string rubikCubeSize("Rubik's Cube Size: " + sizeStr + "x" + sizeStr + "x" + sizeStr);
+			//string scramblingStepsStr("Scrambling Steps: " + (scramblingSteps > 0 ? to_string(scramblingSteps) : ""));
+			string scrambleMsg("Scrambling Algorithm (" + to_string(scramblingSteps) + " steps): " + scramblingAlgo);
+			//string solutionStepsStr("Solution Steps: " + (solutionSteps > 0 ? to_string(solutionSteps) : ""));
+			string solutionMsg("Solution Algorithm (" + to_string(solutionSteps) + " steps): " + solution);
+			string durationStr("Time required to solve: " + getCommaSeparatedTimeDuration(duration));
+
+			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage({
+				rubikCubeSize,
+				//scramblingStepsStr,
+				scrambleMsg,
+				//solutionStepsStr,
+				solutionMsg,
+				durationStr,
+				statusStr
+				});
+
 		//}
 		//else
 		//{
@@ -1430,8 +1448,8 @@ namespace mm {
 
 		//if (!animate_)
 		//	redrawWindow();
-		if(!animate_)
-			displayUpdatedStats();
+		//if(!animate_)
+		displayUpdatedStats();
 	}
 
 	//string RubiksCubeSolverGUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
@@ -1472,7 +1490,8 @@ namespace mm {
 				string scramblingAlgo;
 				string solution2;
 				unsigned long long duration;
-				scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+				string status;
+				scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration, status);
 
 				//Go back to original position
 				bool animate = false;

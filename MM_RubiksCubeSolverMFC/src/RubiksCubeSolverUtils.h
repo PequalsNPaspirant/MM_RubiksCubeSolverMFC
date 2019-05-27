@@ -74,26 +74,6 @@ namespace mm {
 			//std::vector<string> vmsg{ message };
 			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage(vmsg);
 		}
-
-		static void displayMessage(int sizeIn, int scramblingSteps, const string& scramblingAlgo,
-			int solutionSteps, const string& solution, const string& duration)
-		{
-			string size = to_string(sizeIn);
-			string rubikCubeSize("Rubik's Cube Size: " + size + "x" + size + "x" + size);
-			string scramblingStepsStr("Scrambling Steps: " + (scramblingSteps > 0 ? to_string(scramblingSteps) : ""));
-			string scrambleMsg("Scrambling Algorithm: " + scramblingAlgo);
-			string solutionStepsStr("Solution Steps: " + (solutionSteps > 0 ? to_string(solutionSteps) : ""));
-			string solutionMsg("Solution Algorithm: " + solution);
-
-			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage({
-				rubikCubeSize,
-				scramblingStepsStr,
-				scrambleMsg,
-				solutionStepsStr,
-				solutionMsg,
-				duration
-			});
-		}
 	};
 
 

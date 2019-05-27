@@ -81,7 +81,7 @@ namespace mm {
 		virtual string getModelName() = 0;
 		virtual int getDimension() = 0;
 
-		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration) {}
+		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) {}
 		//virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}
 
 		virtual bool isAlgoValid(const string& algo, string& invalidStep) { return false; }
