@@ -299,12 +299,15 @@ namespace mm {
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size) const;
+			void setThickness(float x, float y, float z) { x_ = x; y_ = y; z_ = z; }
+			void getThickness(float& x, float& y, float& z) const { x = x_; y = y_; z = z_; }
 
 		private:
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
 			Location location_;
 			int cubeSize_;
+			float x_, y_, z_; //thicknesses in each direction
 			//int group_;
 		};
 

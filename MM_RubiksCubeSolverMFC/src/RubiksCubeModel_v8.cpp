@@ -377,16 +377,20 @@ namespace mm {
 		solutionSteps_ = 0;
 		solution_ = "";
 		duration_ = 0;
-
-		double x = -extend_;
-		for (int i = 0; i < size_; i++, x += cubeSize_)
+		//cube widths are 1, 2, and 3
+		double widthsIncrement[] = {0, 1.0/2 + 2.0/2, 2.0/2 + 3.0/2};
+		double x = -(1.0 / 2 + 2.0 / 2);
+		for (int i = 0; i < size_; ++i)
 		{
-			double y = -extend_;
-			for (int j = 0; j < size_; j++, y += cubeSize_)
+			x += widthsIncrement[i];
+			double y = -(1.0 / 2 + 2.0 / 2);
+			for (int j = 0; j < size_; ++j)
 			{
-				double z = -extend_;
-				for (int k = 0; k < size_; k++, z += cubeSize_)
+				y += widthsIncrement[j];
+				double z = -(1.0 / 2 + 2.0 / 2);
+				for (int k = 0; k < size_; ++k)
 				{
+					z += widthsIncrement[k];
 					//int group = 0;
 					//if (i == 0)
 					//	group |= Groups::L;
@@ -578,6 +582,12 @@ namespace mm {
 		//bool mirrorVisibleFaces = true;
 		int offsetDist = (1 + size_) * cubeSize_; //distance of mirror image plane from the cube face
 		const float textureExtend = cubeSize_ / 2.0;
+		float xt, yt, zt;
+		pCube.getThickness(xt, yt, zt);
+
+		xt /= 2.0;
+		yt /= 2.0;
+		zt /= 2.0;
 
 		glPushName(x);
 		glPushName(y);
@@ -611,10 +621,10 @@ namespace mm {
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(0.0f, 0.0f, 1.0f);
 			//glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(0.0, 0.0); glVertex3f(-textureExtend, -textureExtend, textureExtend);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-			glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, zt);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, zt);	// Top Left Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -653,10 +663,10 @@ namespace mm {
 			ColorRGB colRgb = ColorRGB::RGBColors[back];
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(0.0f, 0.0f, -1.0f);
-			glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-			glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, -zt);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, -zt);	// Bottom Left Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -694,10 +704,10 @@ namespace mm {
 			ColorRGB colRgb = ColorRGB::RGBColors[top];
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(0.0f, 1.0f, 0.0f);
-			glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(-xt, yt, zt);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(xt, yt, zt);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Right Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -736,10 +746,10 @@ namespace mm {
 			ColorRGB colRgb = ColorRGB::RGBColors[bottom];
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(0.0f, -1.0f, 0.0f);
-			glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
-			glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(-xt, -yt, -zt);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(xt, -yt, -zt);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Right Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -777,10 +787,10 @@ namespace mm {
 			ColorRGB colRgb = ColorRGB::RGBColors[right];
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(1.0f, 0.0f, 0.0f);
-			glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-			glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-			glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(xt, -yt, -zt);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(xt, yt, zt);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Left Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -819,10 +829,10 @@ namespace mm {
 			ColorRGB colRgb = ColorRGB::RGBColors[left];
 			glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 			glNormal3f(-1.0f, 0.0f, 0.0f);
-			glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-			glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+			glTexCoord2d(0.0, 0.0); glVertex3f(-xt, -yt, -zt);	// Bottom Left Of The Texture and Quad
+			glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Right Of The Texture and Quad
+			glTexCoord2d(1.0, 1.0); glVertex3f(-xt, yt, zt);	// Top Right Of The Texture and Quad
+			glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Left Of The Texture and Quad
 			glEnd();
 			glPopName();
 
@@ -863,16 +873,21 @@ namespace mm {
 	unique_ptr<RubiksCubeModel_v8::Cube> RubiksCubeModel_v8::CreateCube(double x, double y, double z, const Location& location)
 	{
 		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
+		float xt = 2.0;
+		float yt = 2.0;
+		float zt = 2.0;
 
 		if (x == 0)
 		{
 			left = Orange;
 			//right = Black;
+			xt = 1.0;
 		}
 		if (x == size_ - 1)
 		{
 			//left = Black;
 			right = Red;
+			xt = 3.0;
 		}
 		//else
 		//{
@@ -884,11 +899,13 @@ namespace mm {
 		{
 			bottom = White;
 			//top = Black;
+			yt = 1.0;
 		}
 		if (y == size_ - 1)
 		{
 			//bottom = Black;
 			top = Yellow;
+			yt = 3.0;
 		}
 		//else
 		//{
@@ -900,11 +917,13 @@ namespace mm {
 		{
 			back = Green;
 			//front = Black;
+			zt = 1.0;
 		}
 		if (z == size_ - 1)
 		{
 			//back = Black;
 			front = Blue;
+			zt = 3.0;
 		}
 		//else
 		//{
@@ -912,7 +931,9 @@ namespace mm {
 		//	front = Black;
 		//}
 
-		return make_unique<Cube>(top, bottom, left, right, front, back, location, cubeSize_);
+		auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location, cubeSize_);
+		retVal->setThickness(xt, yt, zt);
+		return std::move(retVal);
 	}
 
 	//const RubiksCubeModel_v8::Cube& RubiksCubeModel_v8::GetCube(double x, double y, double z)
