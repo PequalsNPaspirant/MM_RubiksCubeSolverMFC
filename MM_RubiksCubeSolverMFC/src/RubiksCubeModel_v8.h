@@ -36,6 +36,7 @@ using namespace std;
 
 #include <gl\gl.h>
 #include <gl\glu.h>
+//#include <glm/glm.hpp>
 #include "Vector3.h"
 #include "RubiksCubeModel.h"
 
@@ -302,6 +303,10 @@ namespace mm {
 			void setThickness(float x, float y, float z) { x_ = x; y_ = y; z_ = z; }
 			void getThickness(float& x, float& y, float& z) const { x = x_; y = y_; z = z_; }
 
+			GLfloat matrixf_[16];
+			//glGetFloatv(GL_MODELVIEW_MATRIX, matrixf);
+			//glLoadMatrixf(matrixProjection.get());
+
 		private:
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
@@ -396,7 +401,8 @@ namespace mm {
 		void fixRubiksCubeFaces();
 
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
-		unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
+		//unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
+		vector<unique_ptr<Cube>> cubes_;
 		//vector< vector<Cube*> > layerF_; //Front layer //Total elements = size_ * size_
 		//vector< vector<Cube*> > layerB_; //Back layer
 		//vector< vector<Cube*> > layerL_; //Left layer

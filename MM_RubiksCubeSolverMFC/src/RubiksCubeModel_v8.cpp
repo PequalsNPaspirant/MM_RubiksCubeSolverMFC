@@ -30,6 +30,7 @@
 #include <cassert>
 #include <memory>
 #include <chrono>
+#include <numeric>
 using namespace std;
 
 //#include "Resource.h"
@@ -38,6 +39,12 @@ using namespace std;
 #include "RubiksCubeSolverUtils.h"
 
 namespace mm {
+
+	bool lessThanZero(double a) { return a < 0.0; }
+	bool greaterThanZero(double a) { return a > 0.0; }
+	bool equalToZero(double a) { return (fabs(a) < 0.0001); }
+	bool defaultFun(double a) { return true; }
+	typedef bool(*fptr)(double a);
 
 	//Factory function definition
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v8(int size)
@@ -220,6 +227,10 @@ namespace mm {
 		bool retVal = false;
 		static int diffData[6] = { -1, 1, 1, -1, -1, 1 };
 		double x, y, z;
+		fptr xcomp = defaultFun;
+		fptr ycomp = defaultFun;
+		fptr zcomp = defaultFun;
+		fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
 
 		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
 		{
@@ -237,36 +248,50 @@ namespace mm {
 			
 			double diff = cubeSize_ * diffData[rotatingSection] * (layerIndex - 1);
 			x = y = z = -1;
+
+			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
+			int maxLayerIndex = cubeSize_ - 1;
 			
 			switch (rotatingSection)
 			{
 			case Left:
 				x = -extend + diff;
 				retVal = (fabs(x - location_.x_) < 0.0001);
+				xcomp = fun[currentLayer];
 				break;
 			case Right:
 				x = extend + diff;
 				retVal = (fabs(x - location_.x_) < 0.0001);
+				xcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case Down:
 				y = -extend + diff;
 				retVal = (fabs(y - location_.y_) < 0.0001);
+				ycomp = fun[currentLayer];
 				break;
 			case Up:
 				y = extend + diff;
 				retVal = (fabs(y - location_.y_) < 0.0001);
+				ycomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case Back:
 				z = -extend + diff;
 				retVal = (fabs(z - location_.z_) < 0.0001);
+				zcomp = fun[currentLayer];
 				break;
 			case Front:
 				z = extend + diff;
 				retVal = (fabs(z - location_.z_) < 0.0001);
+				zcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			}
 
-			if(retVal)
+			//if(retVal)
+			//	return true;
+			bool xMatch = (*xcomp)(location_.x_);
+			bool yMatch = (*ycomp)(location_.y_);
+			bool zMatch = (*zcomp)(location_.z_);
+			if (xMatch && yMatch && zMatch)
 				return true;
 		}
 		
@@ -350,7 +375,8 @@ namespace mm {
 	{
 		for (auto& obj : copy.cubes_)
 		{
-			cubes_[obj.first] = make_unique<Cube>(*obj.second.get());
+			//cubes_[obj.first] = make_unique<Cube>(*obj.second.get());
+			cubes_.push_back(make_unique<Cube>(*obj));
 		}
 	}
 
@@ -412,7 +438,7 @@ namespace mm {
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_[loc] = CreateCube(i, j, k, loc);
+						cubes_.push_back(CreateCube(i, j, k, loc));
 				}
 			}
 		}
@@ -551,8 +577,9 @@ namespace mm {
 
 		for (auto& obj : cubes_)
 		{
-			const Location& loc = obj.first;
-			const Cube& cube = *obj.second.get();
+			//const Location& loc = obj.first;
+			//const Cube& cube = *obj.second.get();
+			const Cube& cube = *obj;
 
 			glPushMatrix();
 
@@ -944,10 +971,74 @@ namespace mm {
 	//	return *cubes_[Location(cubeSize_ * (x - 1), cubeSize_ * (y - 1), cubeSize_ * (z - 1))];
 	//}
 
-	
 	RubiksCubeModel_v8::Cube& RubiksCubeModel_v8::GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3)
 	{
 		RubiksCubeSolverUtils::RunTimeAssert(layer1 != layer2 && layer2 != layer3);
+
+		fptr xcomp = nullptr;
+		fptr ycomp = nullptr;
+		fptr zcomp = nullptr;
+
+		Face layer[3] = { layer1, layer2, layer3 };
+		int layerIndex[3] = { layerIndex1, layerIndex2, layerIndex3 };
+		//vector<int> layerIndex;
+		//if(layerIndex.empty())
+		//{
+		//	layerIndex.resize(cubeSize_);
+		//	std::iota(layerIndex.begin(), layerIndex.end(), 1);
+		//};
+
+		fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
+		//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
+
+		for(int i = 0; i < 3; ++i)
+		{
+			Face currentFace = layer[i];
+			int currentLayer = layerIndex[i] - 1; //modify range to [0, cubeSize_)
+			int maxLayerIndex = cubeSize_ - 1;
+			switch (currentFace)
+			{
+			case Left:
+				//x = -extend_ + cubeSize_ * index;
+				xcomp = fun[currentLayer];
+				break;
+			case Right:
+				//x = extend_ - cubeSize_ * index;
+				xcomp = fun[maxLayerIndex - currentLayer];
+				break;
+			case Down:
+				//y = -extend_ + cubeSize_ * index;
+				ycomp = fun[currentLayer];
+				break;
+			case Up:
+				//y = extend_ - cubeSize_ * index;
+				ycomp = fun[maxLayerIndex - currentLayer];
+				break;
+			case Back:
+				//z = -extend_ + cubeSize_ * index;
+				zcomp = fun[currentLayer];
+				break;
+			case Front:
+				//z = extend_ - cubeSize_ * index;
+				zcomp = fun[maxLayerIndex - currentLayer];
+				break;
+			}
+		}
+
+		RubiksCubeSolverUtils::RunTimeAssert(!xcomp && !ycomp && !zcomp);
+
+		for (auto& obj : cubes_)
+		{
+			Cube& cube = *obj;
+			const Location& loc = cube.getLocation();
+			bool xMatch = (*xcomp)(loc.x_);
+			bool yMatch = (*ycomp)(loc.y_);
+			bool zMatch = (*zcomp)(loc.z_);
+			if (xMatch && yMatch && zMatch)
+				return cube;
+		}
+		
+		RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
 
 		double x, y, z;
 		//double extend_ = (size_ - 1) / 2.0;
@@ -994,7 +1085,7 @@ namespace mm {
 			}
 		}
 
-		return *cubes_[Location(x, y, z)];		
+		//return *cubes_[Location(x, y, z)];		
 	}
 
 	bool RubiksCubeModel_v8::IsValidCube(int x, int y, int z)
@@ -1016,6 +1107,63 @@ namespace mm {
 
 	bool RubiksCubeModel_v8::IsFaceSolved(RubiksCubeModel_v8::Face face)
 	{
+		fptr xcomp = defaultFun;
+		fptr ycomp = defaultFun;
+		fptr zcomp = defaultFun;
+
+		//lessThanZero(double a) { return a < 0.0; }
+		//bool greaterThanZero(double a) { return a > 0.0; }
+		Face targetFace;
+
+		//TODO: remove this switch statement and pass the arguments to IsFaceSolved(currentFace, targetFace or targetColor, xcomp, ycomp, zcomp)
+		switch (face)
+		{
+		case Left:
+			xcomp = lessThanZero;
+			targetFace = Right;
+			break;
+		case Right:
+			xcomp = greaterThanZero;
+			targetFace = Left;
+			break;
+		case Down:
+			ycomp = lessThanZero;
+			targetFace = Up;
+			break;
+		case Up:
+			ycomp = greaterThanZero;
+			targetFace = Down;
+			break;
+		case Back:
+			zcomp = lessThanZero;
+			targetFace = Front;
+			break;
+		case Front:
+			zcomp = greaterThanZero;
+			targetFace = Back;
+			break;
+		}
+
+		Color currentColor = Color::Black;
+		for(const auto& obj : cubes_)
+		{
+			Cube& cube = *obj;
+			const Location& loc = cube.getLocation();
+			bool xMatch = (*xcomp)(loc.x_);
+			bool yMatch = (*ycomp)(loc.y_);
+			bool zMatch = (*zcomp)(loc.z_);
+			if (xMatch && yMatch && zMatch)
+			{
+				if (currentColor == Color::Black)
+					currentColor = cube.GetFaceColor(targetFace);
+				else if (currentColor != cube.GetFaceColor(targetFace))
+					return false;
+			}
+		}
+
+		return true;
+
+		/*
 		//double extend_ = (size_ - 1) / 2.0;
 
 		if (face == Left || face == Right)
@@ -1069,6 +1217,7 @@ namespace mm {
 				}
 			}
 		}
+		*/
 
 		return true;
 	}
@@ -1508,22 +1657,22 @@ namespace mm {
 			for (auto& obj : cubes_)
 			{
 				//const Location& loc = obj.first;
-				Cube& cube = *obj.second.get();
+				Cube& cube = *obj;
 				cube.rotate(rotationAxis, rotationAngle);
 			}
 
-			for (auto& obj : cubes_)
-			{
-				const Location& loc = obj.first;
-				unique_ptr<Cube>& current = obj.second;
+			//for (auto& obj : cubes_)
+			//{
+			//	const Location& loc = obj.first;
+			//	unique_ptr<Cube>& current = obj.second;
 
-				while (loc != current->getLocation())
-				{
-					unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
-					cubes_[current->getLocation()] = std::move(current);
-					current = std::move(temp);
-				}
-			}
+			//	while (loc != current->getLocation())
+			//	{
+			//		unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+			//		cubes_[current->getLocation()] = std::move(current);
+			//		current = std::move(temp);
+			//	}
+			//}
 
 			return;
 		}
@@ -1536,82 +1685,108 @@ namespace mm {
 			double x, y, z;
 			double* pi = nullptr;
 			double* pj = nullptr;
+
+			fptr xcomp = defaultFun;
+			fptr ycomp = defaultFun;
+			fptr zcomp = defaultFun;
+			fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
+			//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
+			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
+			int maxLayerIndex = cubeSize_ - 1;
+
 			switch (rotatingSection)
 			{
 			case RubiksCubeModel_v8::Face::Left:
 				x = -extend_ + diff;
 				pi = &y;
 				pj = &z;
+				xcomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::Right:
 				x = +extend_ + diff;
 				pi = &y;
 				pj = &z;
+				xcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::Down:
 				pi = &x;
 				y = -extend_ + diff;
 				pj = &z;
+				ycomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::Up:
 				pi = &x;
 				y = +extend_ + diff;
 				pj = &z;
+				ycomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::Back:
 				pi = &x;
 				pj = &y;
 				z = -extend_ + diff;
+				zcomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::Front:
 				pi = &x;
 				pj = &y;
 				z = +extend_ + diff;
+				zcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v8::Face::All:
 			default:
 				RubiksCubeSolverUtils::RunTimeAssert(false, "Unrecognized face");
 			}
 
-			*pi = -extend_;
-			for (int i = 0; i < size_; ++i, *pi += cubeSize_)
+			for (auto& obj : cubes_)
 			{
-				*pj = -extend_;
-				for (int j = 0; j < size_; ++j, *pj += cubeSize_)
-				{
-					if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
-						continue;
-
-					auto it = cubes_.find(Location(x, y, z));
-					RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
-					//const Location& loc = it->first;
-					unique_ptr<Cube>& current = it->second;
-					current->rotate(rotationAxis, rotationAngle);
-				}
+				Cube& cube = *obj;
+				const Location& loc = cube.getLocation();
+				bool xMatch = (*xcomp)(loc.x_);
+				bool yMatch = (*ycomp)(loc.y_);
+				bool zMatch = (*zcomp)(loc.z_);
+				if (xMatch && yMatch && zMatch)
+					cube.rotate(rotationAxis, rotationAngle);
 			}
 
-			*pi = -extend_;
-			for (int i = 0; i < size_; ++i, *pi += cubeSize_)
-			{
-				*pj = -extend_;
-				for (int j = 0; j < size_; ++j, *pj += cubeSize_)
-				{
-					if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
-						continue;
+			//*pi = -extend_;
+			//for (int i = 0; i < size_; ++i, *pi += cubeSize_)
+			//{
+			//	*pj = -extend_;
+			//	for (int j = 0; j < size_; ++j, *pj += cubeSize_)
+			//	{
+			//		if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+			//			continue;
 
-					auto it = cubes_.find(Location(x, y, z));
-					RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
-					const Location& loc = it->first;
-					unique_ptr<Cube>& current = it->second;
+			//		auto it = cubes_.find(Location(x, y, z));
+			//		RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+			//		//const Location& loc = it->first;
+			//		unique_ptr<Cube>& current = it->second;
+			//		current->rotate(rotationAxis, rotationAngle);
+			//	}
+			//}
 
-					while (loc != current->getLocation())
-					{
-						unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
-						cubes_[current->getLocation()] = std::move(current);
-						current = std::move(temp);
-					}
-				}
-			}
+			//*pi = -extend_;
+			//for (int i = 0; i < size_; ++i, *pi += cubeSize_)
+			//{
+			//	*pj = -extend_;
+			//	for (int j = 0; j < size_; ++j, *pj += cubeSize_)
+			//	{
+			//		if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+			//			continue;
+
+			//		auto it = cubes_.find(Location(x, y, z));
+			//		RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+			//		const Location& loc = it->first;
+			//		unique_ptr<Cube>& current = it->second;
+
+			//		while (loc != current->getLocation())
+			//		{
+			//			unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+			//			cubes_[current->getLocation()] = std::move(current);
+			//			current = std::move(temp);
+			//		}
+			//	}
+			//}
 		}
 	}
 
