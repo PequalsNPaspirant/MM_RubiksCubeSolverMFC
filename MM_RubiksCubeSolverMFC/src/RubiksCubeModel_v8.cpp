@@ -106,7 +106,19 @@ namespace mm {
 		result = glGetError();
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
 		result = glGetError();
-		glPopMatrix();		
+		glPopMatrix();
+
+		constexpr const int size = 4;
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (Row == Column)
+					matrix_[Row * size + Column] = 1.0;
+				else
+					matrix_[Row * size + Column] = 0.0;
+
+		matrix_[12] = location_.x_ * scale_;
+		matrix_[13] = location_.y_ * scale_;
+		matrix_[14] = location_.z_ * scale_;
 	}
 
 	RubiksCubeModel_v8::Cube::~Cube(void)
@@ -135,6 +147,111 @@ namespace mm {
 
 	*/
 
+	vector<vector<double>> getRotationMatrix(const CVector3& rotationAxis, double rotationAngle)
+	{
+		vector<vector<double>> matrix(4, vector<double>(4, 0.0));
+		double angle = rotationAngle * (PI / 180.0); //Angle should be in radians
+		// Initialize rotation matrix
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (Row == Column)
+					matrix[Row][Column] = 1.0;
+				else
+					matrix[Row][Column] = 0.0;
+
+		if (rotationAxis == CVector3::XAxis)
+		{
+			matrix[1][1] = cos(angle);
+			matrix[1][2] = sin(angle);
+			matrix[2][1] = -sin(angle);
+			matrix[2][2] = cos(angle);
+		}
+		else if (rotationAxis == CVector3::YAxis)
+		{
+			matrix[0][0] = cos(angle);
+			matrix[0][2] = -sin(angle);
+			matrix[2][0] = sin(angle);
+			matrix[2][2] = cos(angle);
+		}
+		else if (rotationAxis == CVector3::ZAxis)
+		{
+			matrix[0][0] = cos(angle);
+			matrix[0][1] = sin(angle);
+			matrix[1][0] = -sin(angle);
+			matrix[1][1] = cos(angle);
+		}
+
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (fabs(matrix[Row][Column]) < 0.000001)
+					matrix[Row][Column] = 0.0;
+
+		return matrix;
+	}
+
+	void getRotationMatrix(double* mat, const CVector3& rotationAxis, double rotationAngle)
+	{
+		constexpr const int size = 4;
+		double angle = rotationAngle * (PI / 180.0); //Angle should be in radians
+		// Initialize rotation matrix
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (Row == Column)
+					mat[Row * size + Column] = 1.0;
+				else
+					mat[Row * size + Column] = 0.0;
+
+		if (rotationAxis == CVector3::XAxis)
+		{
+			mat[1 * size + 1] = cos(angle);
+			mat[1 * size + 2] = sin(angle);
+			mat[2 * size + 1] = -sin(angle);
+			mat[2 * size + 2] = cos(angle);
+		}
+		else if (rotationAxis == CVector3::YAxis)
+		{
+			mat[0 * size + 0] = cos(angle);
+			mat[0 * size + 2] = -sin(angle);
+			mat[2 * size + 0] = sin(angle);
+			mat[2 * size + 2] = cos(angle);
+		}
+		else if (rotationAxis == CVector3::ZAxis)
+		{
+			mat[0 * size + 0] = cos(angle);
+			mat[0 * size + 1] = sin(angle);
+			mat[1 * size + 0] = -sin(angle);
+			mat[1 * size + 1] = cos(angle);
+		}
+
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (fabs(mat[Row * size + Column]) < 0.000001)
+					mat[Row * size + Column] = 0.0;
+	}
+
+	void multiply(double* mat, double* rhs)
+	{
+		constexpr const int size = 4;
+		double lhs[16];
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				lhs[Row * size + Column] = mat[Row * size + Column];
+
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				mat[Row * size + Column] = 0.0;
+
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				for (int k = 0; k < 4; k++) // OR use Matrix2.m_row. Both are equal.
+					mat[i * size + j] += lhs[i * size + k] * rhs[k * size + j];
+
+		for (int Row = 0; Row < 4; Row++)
+			for (int Column = 0; Column < 4; Column++)
+				if (fabs(mat[Row * size + Column]) < 0.000001)
+					mat[Row * size + Column] = 0.0;
+	}
+
 	void RubiksCubeModel_v8::Cube::rotate(CVector3 rotationAxis, double rotationAngle)
 	{
 		if (fabs(rotationAngle) < 0.00001)
@@ -142,11 +259,25 @@ namespace mm {
 
 		location_.rotate(rotationAxis, rotationAngle);
 
+		//vector<vector<double>> matrix = getRotationMatrix(rotationAxis, rotationAngle);
+		double mat[16];
+		getRotationMatrix(mat, rotationAxis, rotationAngle);
+		multiply(matrix_, mat);
+
+		//matrix_[12] = location_.x_ * scale_;
+		//matrix_[13] = location_.y_ * scale_;
+		//matrix_[14] = location_.z_ * scale_;
+
+
+		GLenum result = 0;
 		glPushMatrix();
+		//glLoadIdentity();
 		glLoadMatrixf(matrixf_);
+		//glMultMatrixf(matrixf_);
 		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);		
 		//glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
+		result = glGetError();
 		matrixf_[12] = location_.x_ * scale_;
 		matrixf_[13] = location_.y_ * scale_;
 		matrixf_[14] = location_.z_ * scale_;
@@ -647,6 +778,7 @@ namespace mm {
 			//result = glGetError();
 			//glPopMatrix();
 			//result = glGetError();
+			//glMultMatrixd(cube.matrix_);
 			
 
 			//glLoadMatrixf(cube.matrixf_);
@@ -700,7 +832,9 @@ namespace mm {
 
 		//glLoadMatrixf(pCube.matrixf_);
 		//result = glGetError();
-		glMultMatrixf(pCube.matrixf_);
+		//glMultMatrixf(pCube.matrixf_);
+		glMultMatrixd(pCube.matrix_);
+		//glLoadMatrixd(pCube.matrix_);
 		result = glGetError();
 
 		Color top = pCube.GetFaceColor(Up);
@@ -730,29 +864,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(z - extend_) < 0.0001)
-			if (fabs(z - extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(0, 0, offsetDist * scale_);
+			//if (fabs(z - extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(0, 0, offsetDist * scale_);
 
-				// Mirror Front Face
-				glPushName((GLuint)Front);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(front));
-				glBegin(GL_QUADS);
-				ColorRGB colRgb = ColorRGB::RGBColors[front];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(0.0f, 0.0f, -1.0f);
-				glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-				glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-				glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-				glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad			
+			//	// Mirror Front Face
+			//	glPushName((GLuint)Front);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(front));
+			//	glBegin(GL_QUADS);
+			//	ColorRGB colRgb = ColorRGB::RGBColors[front];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(0.0f, 0.0f, -1.0f);
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad			
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(0, 0, -offsetDist * scale_);
-				glPushMatrix();
-			}
+			//	glTranslated(0, 0, -offsetDist * scale_);
+			//	glPushMatrix();
+			//}
 		}
 
 		//if (Back != Color::Black)
@@ -771,29 +905,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			if (fabs(z - -extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(0, 0, -offsetDist * scale_);
+			//if (fabs(z - -extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(0, 0, -offsetDist * scale_);
 
-				// Mirror Back Face
-				glPushName((GLuint)Back);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(back));
-				glBegin(GL_QUADS);
-				colRgb = ColorRGB::RGBColors[back];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(0.0f, 0.0f, +1.0f);
-				glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-				glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-				glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-				glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad			
+			//	// Mirror Back Face
+			//	glPushName((GLuint)Back);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(back));
+			//	glBegin(GL_QUADS);
+			//	colRgb = ColorRGB::RGBColors[back];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(0.0f, 0.0f, +1.0f);
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad			
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(0, 0, offsetDist * scale_);
-				glPushMatrix();
-			}
+			//	glTranslated(0, 0, offsetDist * scale_);
+			//	glPushMatrix();
+			//}
 		}
 
 		//if (Up != Color::Black)
@@ -813,29 +947,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(y - extend_) < 0.0001)
-			if (fabs(y - extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(0, (offsetDist + 0) * scale_, 0);
+			//if (fabs(y - extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(0, (offsetDist + 0) * scale_, 0);
 
-				// Mirror Up Face
-				glPushName((GLuint)Up);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(top));
-				glBegin(GL_QUADS);
-				colRgb = ColorRGB::RGBColors[top];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(0.0f, -1.0f, 0.0f);
-				glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-				glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-				glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-				glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+			//	// Mirror Up Face
+			//	glPushName((GLuint)Up);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(top));
+			//	glBegin(GL_QUADS);
+			//	colRgb = ColorRGB::RGBColors[top];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(0.0f, -1.0f, 0.0f);
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(0, -(offsetDist + 0) * scale_, 0);
-				glPushMatrix();
-			}
+			//	glTranslated(0, -(offsetDist + 0) * scale_, 0);
+			//	glPushMatrix();
+			//}
 		}
 
 		//if (Down != Color::Black)
@@ -854,29 +988,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			if (fabs(y - -extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(0, -(offsetDist + 1) * scale_, 0);
+			//if (fabs(y - -extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(0, -(offsetDist + 1) * scale_, 0);
 
-				// Down Face
-				glPushName((GLuint)Down);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(bottom));
-				glBegin(GL_QUADS);
-				colRgb = ColorRGB::RGBColors[bottom];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(0.0f, +1.0f, 0.0f);
-				glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
-				glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-				glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-				glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
+			//	// Down Face
+			//	glPushName((GLuint)Down);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(bottom));
+			//	glBegin(GL_QUADS);
+			//	colRgb = ColorRGB::RGBColors[bottom];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(0.0f, +1.0f, 0.0f);
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(0, (offsetDist + 1) * scale_, 0);
-				glPushMatrix();
-			}
+			//	glTranslated(0, (offsetDist + 1) * scale_, 0);
+			//	glPushMatrix();
+			//}
 		}
 
 		//if (Right != Color::Black)
@@ -896,29 +1030,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(x - extend_) < 0.0001)
-			if (fabs(x - extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(offsetDist * scale_, 0, 0);
+			//if (fabs(x - extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(offsetDist * scale_, 0, 0);
 
-				// Mirror Right face
-				glPushName((GLuint)Right);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(right));
-				glBegin(GL_QUADS);
-				colRgb = ColorRGB::RGBColors[right];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(-1.0f, 0.0f, 0.0f);
-				glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-				glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-				glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-				glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+			//	// Mirror Right face
+			//	glPushName((GLuint)Right);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(right));
+			//	glBegin(GL_QUADS);
+			//	colRgb = ColorRGB::RGBColors[right];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(-1.0f, 0.0f, 0.0f);
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(-offsetDist * scale_, 0, 0);
-				glPushMatrix();
-			}
+			//	glTranslated(-offsetDist * scale_, 0, 0);
+			//	glPushMatrix();
+			//}
 		}
 
 		//if (Left != Color::Black)
@@ -937,29 +1071,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			if (fabs(x - -extend_) < 0.0001)
-			{
-				glPushMatrix();
-				glTranslated(-offsetDist * scale_, 0, 0);
+			//if (fabs(x - -extend_) < 0.0001)
+			//{
+			//	glPushMatrix();
+			//	glTranslated(-offsetDist * scale_, 0, 0);
 
-				// Mirror Left Face
-				glPushName((GLuint)Left);
-				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(left));
-				glBegin(GL_QUADS);
-				colRgb = ColorRGB::RGBColors[left];
-				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-				glNormal3f(+1.0f, 0.0f, 0.0f);
-				glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-				glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-				glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-				glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+			//	// Mirror Left Face
+			//	glPushName((GLuint)Left);
+			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(left));
+			//	glBegin(GL_QUADS);
+			//	colRgb = ColorRGB::RGBColors[left];
+			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+			//	glNormal3f(+1.0f, 0.0f, 0.0f);
+			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
+			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
+			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
 
-				glEnd();
-				glPopName();
+			//	glEnd();
+			//	glPopName();
 
-				glTranslated(offsetDist * scale_, 0, 0);
-				glPushMatrix();
-			}
+			//	glTranslated(offsetDist * scale_, 0, 0);
+			//	glPushMatrix();
+			//}
 		}
 
 		glPopName();

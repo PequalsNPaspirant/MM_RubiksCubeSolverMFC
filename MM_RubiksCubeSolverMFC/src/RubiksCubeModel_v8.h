@@ -347,6 +347,7 @@ namespace mm {
 			void getThickness(float& x, float& y, float& z) const { x = x_; y = y_; z = z_; }
 
 			GLfloat matrixf_[16];
+			double matrix_[16];
 			//glGetFloatv(GL_MODELVIEW_MATRIX, matrixf);
 			//glLoadMatrixf(matrixProjection.get());
 
