@@ -274,7 +274,7 @@ namespace mm {
 		//glLoadIdentity();
 		glLoadMatrixf(matrixf_);
 		//glMultMatrixf(matrixf_);
-		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);		
+		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
 		//glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
 		result = glGetError();
@@ -282,38 +282,41 @@ namespace mm {
 		matrixf_[13] = location_.y_ * scale_;
 		matrixf_[14] = location_.z_ * scale_;
 		glPopMatrix();
+	}
 
-		//int numRotations = fabs(rotationAngle) / 90;
-		//if(rotationAxis == CVector3::XAxis)
-		//{
-		//	while (--numRotations > -1)
-		//	{
-		//		if (rotationAngle > 0)
-		//			TiltDown();
-		//		else
-		//			TiltUp();					
-		//	}
-		//}
-		//else if (rotationAxis == CVector3::YAxis)
-		//{
-		//	while (--numRotations > -1)
-		//	{
-		//		if (rotationAngle > 0)
-		//			TurnRight();
-		//		else
-		//			TurnLeft();
-		//	}
-		//}
-		//else if (rotationAxis == CVector3::ZAxis)
-		//{
-		//	while (--numRotations > -1)
-		//	{
-		//		if (rotationAngle > 0)
-		//			TiltLeft();
-		//		else
-		//			TiltRight();
-		//	}
-		//}
+	void RubiksCubeModel_v8::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
+	{
+		int numRotations = fabs(rotationAngle) / 90;
+		if(rotationAxis == CVector3::XAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TiltDown();
+				else
+					TiltUp();					
+			}
+		}
+		else if (rotationAxis == CVector3::YAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TurnRight();
+				else
+					TurnLeft();
+			}
+		}
+		else if (rotationAxis == CVector3::ZAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TiltLeft();
+				else
+					TiltRight();
+			}
+		}
 	}
 
 	// Aound X axis
@@ -837,12 +840,19 @@ namespace mm {
 		//glLoadMatrixd(pCube.matrix_);
 		result = glGetError();
 
-		Color top = pCube.GetFaceColor(Up);
-		Color bottom = pCube.GetFaceColor(Down);
-		Color left = pCube.GetFaceColor(Left);
-		Color right = pCube.GetFaceColor(Right);
-		Color back = pCube.GetFaceColor(Back);
-		Color front = pCube.GetFaceColor(Front);
+		//Color top = pCube.GetFaceColor(Up);
+		//Color bottom = pCube.GetFaceColor(Down);
+		//Color left = pCube.GetFaceColor(Left);
+		//Color right = pCube.GetFaceColor(Right);
+		//Color back = pCube.GetFaceColor(Back);
+		//Color front = pCube.GetFaceColor(Front);
+
+		Color top = Color::Yellow;
+		Color bottom = Color::White;
+		Color left = Color::Orange;
+		Color right = Color::Red;
+		Color back = Color::Green;
+		Color front = Color::Blue;
 
 		glEnable(GL_TEXTURE_2D);
 
@@ -1848,7 +1858,7 @@ namespace mm {
 
 		//Fix cube position and Reset all parameters
 		g_nRotationAngle = targetAngle;
-		//fixRubiksCubeFaces();
+		fixRubiksCubeFaces();
 		if (animate_)
 		{
 			pUi_->redrawWindow();
@@ -1865,10 +1875,10 @@ namespace mm {
 
 	void RubiksCubeModel_v8::fixRubiksCubeFaces()
 	{
-		Rotate(g_vRotationAxis, g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, g_nRotationAngle);
+		fixRubiksCubeFaces(g_vRotationAxis, g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, g_nRotationAngle);
 	}
 
-	void RubiksCubeModel_v8::Rotate(CVector3 rotationAxis, RubiksCubeModel_v8::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
+	void RubiksCubeModel_v8::fixRubiksCubeFaces(CVector3 rotationAxis, RubiksCubeModel_v8::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
 	{
 		if (rotatingSection == RubiksCubeModel_v8::Face::All)
 		{
@@ -1876,7 +1886,7 @@ namespace mm {
 			{
 				//const Location& loc = obj.first;
 				Cube& cube = *obj;
-				cube.rotate(rotationAxis, rotationAngle);
+				cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
 			}
 
 			//for (auto& obj : cubes_)
@@ -1963,7 +1973,7 @@ namespace mm {
 				bool yMatch = (*ycomp)(loc.y_);
 				bool zMatch = (*zcomp)(loc.z_);
 				if (xMatch && yMatch && zMatch)
-					cube.rotate(rotationAxis, rotationAngle);
+					cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
 			}
 
 			//*pi = -extend_;

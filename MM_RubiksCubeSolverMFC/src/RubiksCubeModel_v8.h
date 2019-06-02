@@ -342,6 +342,7 @@ namespace mm {
 
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
+			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size) const;
 			void setThickness(float x, float y, float z) { x_ = x; y_ = y; z_ = z; }
 			void getThickness(float& x, float& y, float& z) const { x = x_; y = y_; z = z_; }
@@ -389,7 +390,7 @@ namespace mm {
 
 		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
-		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
+		void fixRubiksCubeFaces(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
 		int getSize() const { return size_; }
 
 	private:
