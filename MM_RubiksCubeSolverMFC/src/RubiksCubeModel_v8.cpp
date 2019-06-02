@@ -1233,7 +1233,7 @@ namespace mm {
 			}
 		}
 
-		RubiksCubeSolverUtils::RunTimeAssert(!xcomp && !ycomp && !zcomp);
+		RubiksCubeSolverUtils::RunTimeAssert(xcomp != nullptr && ycomp != nullptr && zcomp != nullptr);
 
 		for (auto& obj : cubes_)
 		{
