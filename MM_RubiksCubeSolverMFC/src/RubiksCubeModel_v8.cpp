@@ -91,6 +91,22 @@ namespace mm {
 		location_ = location;
 		cubeSize_ = cubeSize;
 		//group_ = group;
+
+		GLenum result = 0;
+		glPushMatrix();
+		//result = glGetError();
+		//float mat[] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		//for (int i = 0; i < 16; ++i)
+		//	matrixf_[i] = mat[i];
+		//glLoadMatrixf(matrixf_);
+		glLoadIdentity();
+		result = glGetError();
+		////glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
+		result = glGetError();
+		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
+		result = glGetError();
+		glPopMatrix();		
 	}
 
 	RubiksCubeModel_v8::Cube::~Cube(void)
@@ -126,37 +142,43 @@ namespace mm {
 
 		location_.rotate(rotationAxis, rotationAngle);
 
-		int numRotations = fabs(rotationAngle) / 90;
-		if(rotationAxis == CVector3::XAxis)
-		{
-			while (--numRotations > -1)
-			{
-				if (rotationAngle > 0)
-					TiltDown();
-				else
-					TiltUp();					
-			}
-		}
-		else if (rotationAxis == CVector3::YAxis)
-		{
-			while (--numRotations > -1)
-			{
-				if (rotationAngle > 0)
-					TurnRight();
-				else
-					TurnLeft();
-			}
-		}
-		else if (rotationAxis == CVector3::ZAxis)
-		{
-			while (--numRotations > -1)
-			{
-				if (rotationAngle > 0)
-					TiltLeft();
-				else
-					TiltRight();
-			}
-		}
+		glPushMatrix();
+		glLoadMatrixf(matrixf_);
+		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
+		glPopMatrix();
+
+		//int numRotations = fabs(rotationAngle) / 90;
+		//if(rotationAxis == CVector3::XAxis)
+		//{
+		//	while (--numRotations > -1)
+		//	{
+		//		if (rotationAngle > 0)
+		//			TiltDown();
+		//		else
+		//			TiltUp();					
+		//	}
+		//}
+		//else if (rotationAxis == CVector3::YAxis)
+		//{
+		//	while (--numRotations > -1)
+		//	{
+		//		if (rotationAngle > 0)
+		//			TurnRight();
+		//		else
+		//			TurnLeft();
+		//	}
+		//}
+		//else if (rotationAxis == CVector3::ZAxis)
+		//{
+		//	while (--numRotations > -1)
+		//	{
+		//		if (rotationAngle > 0)
+		//			TiltLeft();
+		//		else
+		//			TiltRight();
+		//	}
+		//}
 	}
 
 	// Aound X axis
@@ -406,6 +428,7 @@ namespace mm {
 		//cube widths are 1, 2, and 3
 		double widthsIncrement[] = {0, 1.0/2 + 2.0/2, 2.0/2 + 3.0/2};
 		double x = -(1.0 / 2 + 2.0 / 2);
+		cubes_.clear();
 		for (int i = 0; i < size_; ++i)
 		{
 			x += widthsIncrement[i];
@@ -579,22 +602,55 @@ namespace mm {
 		{
 			//const Location& loc = obj.first;
 			//const Cube& cube = *obj.second.get();
-			const Cube& cube = *obj;
+			Cube& cube = *obj;
 
-			glPushMatrix();
+			//glPushMatrix();
 
-			if (g_bRotating)
-			{
-				if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_))
-				{
-					int angle = g_bFlipRotation ? -g_nRotationAngle : g_nRotationAngle;
-					glRotated(angle, g_vRotationAxis.x, g_vRotationAxis.y, g_vRotationAxis.z);
-				}
-			}
+			//if (g_bRotating)
+			//{
+			//	if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_))
+			//	{
+			//		int angle = g_bFlipRotation ? -g_nRotationAngle : g_nRotationAngle;
+			//		//glRotated(angle, g_vRotationAxis.x, g_vRotationAxis.y, g_vRotationAxis.z);
+			//	}
+			//}
+
+			//GLenum result = 0;
+
+			//glRotated(180, 1, 0, 0);
+			//result = glGetError();
+
+			//glLoadIdentity();
+			//result = glGetError();
+
+			//glMatrixMode(GL_MODELVIEW);
+			//result = glGetError();
+
+			//
+			//result = glGetError();
+			//float mat[] = { 1, 2, 3, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+			////for (int i = 0; i < 16; ++i)
+			////	cube.matrixf_[i] = mat[i];
+			//glLoadMatrixf(&mat[0]);
+			//result = glGetError();
+			//glLoadIdentity();
+			//result = glGetError();
+			//glRotated(180, 1, 0, 0);
+			//result = glGetError();
+			////glTranslated(cube.location_.x_ * scale_, cube.location_.y_ * scale_, cube.location_.z_ * scale_);
+			//float mat2[16];
+			//glGetFloatv(GL_MODELVIEW_MATRIX, mat2);
+			//result = glGetError();
+			//glPopMatrix();
+			//result = glGetError();
+			
+
+			//glLoadMatrixf(cube.matrixf_);
+			//result = glGetError();
 
 			renderIndividualCube(cube, cube.getLocation());
 
-			glPopMatrix();
+			//glPopMatrix();
 		}
 	}
 
@@ -627,7 +683,21 @@ namespace mm {
 
 		glPushMatrix();
 
-		glTranslated(x * scale_, y * scale_, z * scale_);
+		GLenum result = 0;
+
+		//float mat1[16];
+		//glGetFloatv(GL_MODELVIEW_MATRIX, mat1);
+		//result = glGetError();
+		//glTranslated(x * scale_, y * scale_, z * scale_);
+		//result = glGetError();
+		//float mat2[16];
+		//glGetFloatv(GL_MODELVIEW_MATRIX, mat2);
+		//result = glGetError();
+
+		//glLoadMatrixf(pCube.matrixf_);
+		//result = glGetError();
+		glMultMatrixf(pCube.matrixf_);
+		result = glGetError();
 
 		Color top = pCube.GetFaceColor(Up);
 		Color bottom = pCube.GetFaceColor(Down);
@@ -1630,7 +1700,7 @@ namespace mm {
 
 		//Fix cube position and Reset all parameters
 		g_nRotationAngle = targetAngle;
-		fixRubiksCubeFaces();
+		//fixRubiksCubeFaces();
 		if (animate_)
 		{
 			pUi_->redrawWindow();
