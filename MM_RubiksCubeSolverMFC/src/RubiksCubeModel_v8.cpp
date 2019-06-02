@@ -40,8 +40,8 @@ using namespace std;
 
 namespace mm {
 
-	bool lessThanZero(double a) { return a < 0.0; }
-	bool greaterThanZero(double a) { return a > 0.0; }
+	bool lessThanZero(double a) { return a < -0.0001; }
+	bool greaterThanZero(double a) { return a > 0.0001; }
 	bool equalToZero(double a) { return (fabs(a) < 0.0001); }
 	bool defaultFun(double a) { return true; }
 	typedef bool(*fptr)(double a);
@@ -144,8 +144,12 @@ namespace mm {
 
 		glPushMatrix();
 		glLoadMatrixf(matrixf_);
-		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);		
+		//glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
+		matrixf_[12] = location_.x_ * scale_;
+		matrixf_[13] = location_.y_ * scale_;
+		matrixf_[14] = location_.z_ * scale_;
 		glPopMatrix();
 
 		//int numRotations = fabs(rotationAngle) / 90;
@@ -272,7 +276,7 @@ namespace mm {
 			x = y = z = -1;
 
 			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
-			int maxLayerIndex = cubeSize_ - 1;
+			int maxLayerIndex = 3 - 1;
 			
 			switch (rotatingSection)
 			{
@@ -1065,7 +1069,7 @@ namespace mm {
 		{
 			Face currentFace = layer[i];
 			int currentLayer = layerIndex[i] - 1; //modify range to [0, cubeSize_)
-			int maxLayerIndex = cubeSize_ - 1;
+			int maxLayerIndex = size_ - 1;
 			switch (currentFace)
 			{
 			case Left:
@@ -1668,7 +1672,7 @@ namespace mm {
 			//The last step should achive perfect angle exactly equal to targetAngle
 			g_nRotationAngle = 0.0;
 			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
-			for(int step = numTotalFrames; step > 1; --step)
+			for(int step = numTotalFrames; step > 0; --step)
 			{
 				if (pUi_->getInterruptAnimation())
 					throw false;
@@ -1683,6 +1687,16 @@ namespace mm {
 				}
 
 				g_nRotationAngle += stepAngle;
+
+				for (auto& obj : cubes_)
+				{
+					Cube& cube = *obj;
+					if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_))
+					{
+						cube.rotate(g_vRotationAxis, stepAngle);
+					}
+				}
+
 				pUi_->redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 				if(step > numStepsForSnappingEffect)
@@ -1762,7 +1776,7 @@ namespace mm {
 			fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
 			//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
 			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
-			int maxLayerIndex = cubeSize_ - 1;
+			int maxLayerIndex = size_ - 1;
 
 			switch (rotatingSection)
 			{

@@ -182,6 +182,7 @@ namespace mm {
 		bool interruptAnimation_{ false }; 
 		bool keepRunning_{ true };
 		bool devTestingMode_{ false };
+		bool graphicsAreaCreated_{ false };
 	};
 
 }

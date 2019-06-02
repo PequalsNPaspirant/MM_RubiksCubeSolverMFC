@@ -159,6 +159,49 @@ namespace mm {
 
 			const vector<vector<double>>& getRotationMatrix(const CVector3& rotationAxis, double rotationAngle)
 			{
+				static vector<vector<double>> matrix(4, vector<double>(4, 0.0));
+				double angle = rotationAngle * (PI / 180.0); //Angle should be in radians
+				// Initialize rotation matrix
+				for (int Row = 0; Row < 4; Row++)
+					for (int Column = 0; Column < 4; Column++)
+						if (Row == Column)
+							matrix[Row][Column] = 1.0;
+						else
+							matrix[Row][Column] = 0.0;
+
+				if (rotationAxis == CVector3::XAxis)
+				{
+					matrix[1][1] = cos(angle);
+					matrix[1][2] = sin(angle);
+					matrix[2][1] = -sin(angle);
+					matrix[2][2] = cos(angle);
+				}
+				else if (rotationAxis == CVector3::YAxis)
+				{
+					matrix[0][0] = cos(angle);
+					matrix[0][2] = -sin(angle);
+					matrix[2][0] = sin(angle);
+					matrix[2][2] = cos(angle);
+				}
+				else if (rotationAxis == CVector3::ZAxis)
+				{
+					matrix[0][0] = cos(angle);
+					matrix[0][1] = sin(angle);
+					matrix[1][0] = -sin(angle);
+					matrix[1][1] = cos(angle);
+				}
+
+				for (int Row = 0; Row < 4; Row++)
+					for (int Column = 0; Column < 4; Column++)
+						if (fabs(matrix[Row][Column]) < 0.000001)
+							matrix[Row][Column] = 0.0;
+
+				return matrix;
+
+
+
+
+
 				using RotationMatrix = vector<vector<double>>;
 				static vector<vector<RotationMatrix>> rotationMatrixSet(3, vector<RotationMatrix>(3, RotationMatrix(4, vector<double>(4, 0.0))));
 

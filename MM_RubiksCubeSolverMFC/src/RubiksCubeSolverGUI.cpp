@@ -311,7 +311,11 @@ namespace mm {
 
 	void RubiksCubeSolverGUI::render()
 	{
-		createGraphicsArea();
+		if (!graphicsAreaCreated_)
+		{
+			createGraphicsArea();
+			graphicsAreaCreated_ = true;
+		}
 
 		while (keepRunning_)
 		{
@@ -1146,6 +1150,9 @@ namespace mm {
 	//  Process WM_SIZE message for window/dialog: 
 	void RubiksCubeSolverGUI::OnSize(int cx, int cy)
 	{
+		if (!graphicsAreaCreated_)
+			return;
+
 		//if (!g_bFullScreen)
 		//{
 		//	WND_WIDTH = cx;
@@ -1233,6 +1240,9 @@ namespace mm {
 
 	bool RubiksCubeSolverGUI::activateRenderingThread(bool force /*= false*/)
 	{
+		if (!graphicsAreaCreated_)
+			return false;
+
 		if (force)
 		{
 			//Activate always
