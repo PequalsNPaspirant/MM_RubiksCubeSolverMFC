@@ -339,6 +339,13 @@ namespace mm {
 		//2		04		- 17			13
 	}
 
+	void RubiksCubeSolverScene::setRubiksCubeLengthWidthHeight(double length, double width, double height)
+	{
+		if (fabs(length - width) > 0.0001 || fabs(width - height) > 0.0001)
+			rubicCubeModel_->setRubiksCubeSize(3); //most probably its not a Rubik's cube
+		rubicCubeModel_->setRubiksCubeLengthWidthHeight(length, width, height);
+	}
+
 	void RubiksCubeSolverScene::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
 		unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
 	{

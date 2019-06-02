@@ -484,7 +484,10 @@ namespace mm {
 		solution_(""),
 		duration_(0),
 		animate_(false),
-		pUi_(nullptr)
+		pUi_(nullptr),
+		xt_(2.0),
+		yt_(2.0),
+		zt_(2.0)
 	{
 		ResetCube(false, nullptr);
 
@@ -531,7 +534,10 @@ namespace mm {
 		isScrambling_(copy.isScrambling_),
 		solutionSteps_(copy.solutionSteps_),
 		solution_(copy.solution_),
-		duration_(copy.duration_)
+		duration_(copy.duration_),
+		xt_(copy.xt_),
+		yt_(copy.yt_),
+		zt_(copy.zt_)
 	{
 		for (auto& obj : copy.cubes_)
 		{
@@ -542,6 +548,14 @@ namespace mm {
 
 	RubiksCubeModel_v8::~RubiksCubeModel_v8()
 	{
+	}
+
+	void RubiksCubeModel_v8::setRubiksCubeLengthWidthHeight(double length, double width, double height)
+	{
+		xt_ = length;
+		yt_ = width;
+		zt_ = height;
+		ResetCube(false, nullptr);
 	}
 
 	void RubiksCubeModel_v8::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
@@ -563,37 +577,23 @@ namespace mm {
 		solutionSteps_ = 0;
 		solution_ = "";
 		duration_ = 0;
-		//cube widths are 1, 2, and 3
-		double widthsIncrement[] = {0, 1.0/2 + 2.0/2, 2.0/2 + 3.0/2};
-		double x = -(1.0 / 2 + 2.0 / 2);
+
 		cubes_.clear();
-		for (int i = 0; i < size_; ++i)
+		double start = -extend_;
+		if (size_ == 3)
+			start = -(xt_ / 2 + yt_ / 2);
+
+		//cube widths are 1, 2, and 3
+		double increment[] = {0, xt_/2 + yt_/2, yt_/2 + zt_/2};
+		double x = start;
+		for (int i = 0; i < size_; ++i, x += (size_ == 3 ? increment[i] : cubeSize_))
 		{
-			x += widthsIncrement[i];
-			double y = -(1.0 / 2 + 2.0 / 2);
-			for (int j = 0; j < size_; ++j)
+			double y = start;
+			for (int j = 0; j < size_; ++j, y += (size_ == 3 ? increment[j] : cubeSize_))
 			{
-				y += widthsIncrement[j];
-				double z = -(1.0 / 2 + 2.0 / 2);
-				for (int k = 0; k < size_; ++k)
+				double z = start;
+				for (int k = 0; k < size_; ++k, z += (size_ == 3 ? increment[k] : cubeSize_))
 				{
-					z += widthsIncrement[k];
-					//int group = 0;
-					//if (i == 0)
-					//	group |= Groups::L;
-					//else if (i == size_ - 1)
-					//	group |= Groups::R;
-					//
-					//if (j == 0)
-					//	group |= Groups::D;
-					//else if (j == size_ - 1)
-					//	group |= Groups::U;
-
-					//if (k == 0)
-					//	group |= Groups::B;
-					//else if (k == size_ - 1)
-					//	group |= Groups::F;
-
 					Location loc(x, y, z);
 
 					if (i == 0 || i == size_ - 1
@@ -702,6 +702,11 @@ namespace mm {
 	//	duration_ = duration;
 	//}
 
+	void RubiksCubeModel_v8::setRubiksCubeSize(int size)
+	{
+		size_ = size;
+	}
+
 	void RubiksCubeModel_v8::render()
 	{
 #ifdef _DEBUG
@@ -804,7 +809,7 @@ namespace mm {
 		//bool mirrorVisibleFaces = true;
 		int offsetDist = (1 + size_) * cubeSize_; //distance of mirror image plane from the cube face
 		const float textureExtend = cubeSize_ / 2.0;
-		float xt, yt, zt;
+		double xt, yt, zt;
 		pCube.getThickness(xt, yt, zt);
 
 		xt /= 2.0;
@@ -1118,21 +1123,21 @@ namespace mm {
 	unique_ptr<RubiksCubeModel_v8::Cube> RubiksCubeModel_v8::CreateCube(double x, double y, double z, const Location& location)
 	{
 		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
-		float xt = 2.0;
-		float yt = 2.0;
-		float zt = 2.0;
+		double xt = yt_;
+		double yt = yt_;
+		double zt = yt_;
 
 		if (x == 0)
 		{
 			left = Orange;
 			//right = Black;
-			xt = 1.0;
+			xt = xt_;
 		}
 		if (x == size_ - 1)
 		{
 			//left = Black;
 			right = Red;
-			xt = 3.0;
+			xt = zt_;
 		}
 		//else
 		//{
@@ -1144,13 +1149,13 @@ namespace mm {
 		{
 			bottom = White;
 			//top = Black;
-			yt = 1.0;
+			yt = xt_;
 		}
 		if (y == size_ - 1)
 		{
 			//bottom = Black;
 			top = Yellow;
-			yt = 3.0;
+			yt = zt_;
 		}
 		//else
 		//{
@@ -1162,13 +1167,13 @@ namespace mm {
 		{
 			back = Green;
 			//front = Black;
-			zt = 1.0;
+			zt = xt_;
 		}
 		if (z == size_ - 1)
 		{
 			//back = Black;
 			front = Blue;
-			zt = 3.0;
+			zt = zt_;
 		}
 		//else
 		//{

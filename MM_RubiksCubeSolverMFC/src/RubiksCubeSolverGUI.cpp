@@ -113,6 +113,13 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
+	void RubiksCubeSolverGUI::setCubeType(cubeType type)
+	{
+		cubeType_ = type;
+		firstGenCommand_ = firstGenerationCommands::eSetCubeType;
+		activateRenderingThread();
+	}
+
 	void RubiksCubeSolverGUI::exitUI()
 	{
 		interruptAnimation_ = true;
@@ -1272,6 +1279,9 @@ namespace mm {
 	{
 		switch (firstGenCommand_)
 		{
+		case firstGenerationCommands::eSetCubeType:
+			SetCubeTypeImpl();
+			break;
 		case firstGenerationCommands::eScramble:
 			ScrambleImpl();
 			break;
@@ -1437,6 +1447,19 @@ namespace mm {
 	void RubiksCubeSolverGUI::Reset(bool animate)
 	{
 		scene_.Reset(animate);
+	}
+
+	void RubiksCubeSolverGUI::SetCubeTypeImpl()
+	{
+		switch (cubeType_)
+		{
+		case cubeType::rubiksCube:
+			scene_.setRubiksCubeLengthWidthHeight(2.0, 2.0, 2.0);
+			break;
+		case cubeType::mirrorCube:
+			scene_.setRubiksCubeLengthWidthHeight(1.0, 2.0, 3.0);
+			break;
+		}
 	}
 
 	void RubiksCubeSolverGUI::ScrambleImpl()

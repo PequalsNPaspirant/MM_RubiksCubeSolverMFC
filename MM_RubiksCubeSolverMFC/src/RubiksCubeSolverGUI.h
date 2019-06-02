@@ -45,6 +45,12 @@ namespace mm {
 		//=================== start of approved interface ==============
 
 	public:
+		enum class cubeType
+		{
+			rubiksCube,
+			mirrorCube
+		};
+
 		RubiksCubeSolverGUI();
 		RubiksCubeSolverGUI(const RubiksCubeSolverGUI&) = delete;
 		RubiksCubeSolverGUI& operator=(const RubiksCubeSolverGUI&) = delete;
@@ -52,6 +58,7 @@ namespace mm {
 		RubiksCubeSolverGUI& operator=(RubiksCubeSolverGUI&&) = delete;
 		~RubiksCubeSolverGUI();
 		void initialize(HWND hWnd);
+		void setCubeType(cubeType type);
 		void Scramble(const string& scramblingAlgo, bool animateIn);
 		void Solve(bool animateIn);
 		void runTests(bool animateIn);
@@ -71,6 +78,7 @@ namespace mm {
 		void exitUI();
 
 	private:
+		void SetCubeTypeImpl();
 		void ScrambleImpl();
 		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
 		void runRubiksCubeTests();
@@ -79,6 +87,7 @@ namespace mm {
 		enum class firstGenerationCommands //Only one command can be executed at a time
 		{
 			eNoCommand = 0,
+			eSetCubeType,
 			eScramble,
 			eSolve,
 			eRunTests,
@@ -169,6 +178,7 @@ namespace mm {
 		int sleepTimeMilliSec_;
 		unsigned int rubiksCubeSize_;
 		string scramblingAlgo_;
+		cubeType cubeType_;
 
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
