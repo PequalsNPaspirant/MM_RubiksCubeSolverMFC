@@ -1217,7 +1217,7 @@ namespace mm {
 	{
 		RubiksCubeSolverUtils::RunTimeAssert(layer1 != layer2 && layer2 != layer3);
 
-		//if (cubeType_ == cubeType::mirrorCube)
+		if (cubeType_ == cubeType::mirrorCube)
 		{
 			fptr xcomp = nullptr;
 			fptr ycomp = nullptr;
@@ -1284,7 +1284,7 @@ namespace mm {
 
 			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
 		}
-		//else
+		else
 		{
 			double xt;
 			cubes_[0]->getThickness(xt, xt, xt);
@@ -1333,6 +1333,16 @@ namespace mm {
 				}
 			}
 			//return *cubes_[Location(x, y, z)];
+
+			for (auto& obj : cubes_)
+			{
+				Cube& cube = *obj;
+				const Location& loc = cube.getLocation();
+				if (fabs(x - loc.x_) < 0 && fabs(y - loc.y_) < 0 && fabs(z - loc.z_) < 0)
+					return cube;
+			}
+
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
 		}
 	}
 
@@ -1934,6 +1944,22 @@ namespace mm {
 
 			return;
 		}
+		else
+		{
+			for (auto& obj : cubes_)
+			{
+				Cube& cube = *obj;
+				if (cube.belongsTo(rotatingSection, layerIndexFrom, layerIndexTo, extend_, cubeType_))
+					cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
+			}
+		}
+
+		return;
+
+
+
+
+
 
 		double xt;
 		cubes_[0]->getThickness(xt, xt, xt);
