@@ -67,7 +67,6 @@ namespace mm {
 	class RubiksCubeModel
 	{
 	public:
-		virtual void setRubiksCubeLengthWidthHeight(double length, double width, double height) {}
 		virtual void setAnimate(bool animate) {}
 		virtual void ResetCube(bool animate, RubiksCubeSolverGUI* ui) = 0;
 		//virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
@@ -81,7 +80,8 @@ namespace mm {
 		virtual unique_ptr<RubiksCubeModel> copy() = 0;
 		virtual string getModelName() = 0;
 		virtual int getDimension() = 0;
-		virtual void setRubiksCubeSize(int size) {}
+		virtual bool activateRubiksCube() { return true; }
+		virtual bool activateMirrorCube() { return true; }
 
 		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) {}
 		//virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}

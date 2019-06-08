@@ -113,11 +113,18 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
-	void RubiksCubeSolverGUI::setCubeType(cubeType type)
+	bool RubiksCubeSolverGUI::activateRubiksCube()
 	{
-		cubeType_ = type;
+		cubeType_ = cubeType::rubiksCube;
 		firstGenCommand_ = firstGenerationCommands::eSetCubeType;
-		activateRenderingThread();
+		return activateRenderingThread();
+	}
+
+	bool RubiksCubeSolverGUI::activateMirrorCube()
+	{
+		cubeType_ = cubeType::mirrorCube;
+		firstGenCommand_ = firstGenerationCommands::eSetCubeType;
+		return activateRenderingThread();
 	}
 
 	void RubiksCubeSolverGUI::exitUI()
@@ -1454,10 +1461,10 @@ namespace mm {
 		switch (cubeType_)
 		{
 		case cubeType::rubiksCube:
-			scene_.setRubiksCubeLengthWidthHeight(2.0, 2.0, 2.0);
+			scene_.activateRubiksCube();
 			break;
 		case cubeType::mirrorCube:
-			scene_.setRubiksCubeLengthWidthHeight(1.0, 2.0, 3.0);
+			scene_.activateMirrorCube();
 			break;
 		}
 	}

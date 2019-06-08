@@ -379,7 +379,7 @@ namespace mm {
 		faces_[Right] = temp1;
 	}
 
-	bool RubiksCubeModel_v8::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend) const
+	bool RubiksCubeModel_v8::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend, RubiksCubeModel_v8::cubeType type) const
 	{
 		if (rotatingSection == All)
 			return true;
@@ -446,13 +446,19 @@ namespace mm {
 				break;
 			}
 
-			//if(retVal)
-			//	return true;
-			bool xMatch = (*xcomp)(location_.x_);
-			bool yMatch = (*ycomp)(location_.y_);
-			bool zMatch = (*zcomp)(location_.z_);
-			if (xMatch && yMatch && zMatch)
-				return true;
+			if (type == cubeType::rubiksCube)
+			{
+				if(retVal)
+					return true;
+			}
+			else if (type == cubeType::mirrorCube)
+			{
+				bool xMatch = (*xcomp)(location_.x_);
+				bool yMatch = (*ycomp)(location_.y_);
+				bool zMatch = (*zcomp)(location_.z_);
+				if (xMatch && yMatch && zMatch)
+					return true;
+			}
 		}
 		
 		return retVal;
@@ -470,8 +476,8 @@ namespace mm {
 		//layerD_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//cubes_(27),
 		size_(size),
-		cubeSize_(2),
-		extend_(cubeSize_ * (size - 1) / 2.0),
+		//cubeSize_(2),
+		//extend_(cubeSize_ * (size - 1) / 2.0),
 		//g_bRotating(false),
 		//g_bFlipRotation(false),
 		//g_vRotationAxis(0, 0, 0),
@@ -484,10 +490,7 @@ namespace mm {
 		solution_(""),
 		duration_(0),
 		animate_(false),
-		pUi_(nullptr),
-		xt_(2.0),
-		yt_(2.0),
-		zt_(2.0)
+		pUi_(nullptr)
 	{
 		ResetCube(false, nullptr);
 
@@ -550,12 +553,24 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v8::setRubiksCubeLengthWidthHeight(double length, double width, double height)
+	bool RubiksCubeModel_v8::activateRubiksCube()
 	{
-		xt_ = length;
-		yt_ = width;
-		zt_ = height;
+		cubeType_ = cubeType::rubiksCube;
+		//size_ = 3;
+		cubeSize_ = 2;
 		ResetCube(false, nullptr);
+		return true;
+	}
+
+	bool RubiksCubeModel_v8::activateMirrorCube()
+	{
+		cubeType_ = cubeType::mirrorCube;
+		size_ = 3;
+		xt_ = 1.0;
+		yt_ = 2.0;
+		zt_ = 3.0;
+		ResetCube(false, nullptr);
+		return true;
 	}
 
 	void RubiksCubeModel_v8::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
@@ -580,19 +595,19 @@ namespace mm {
 
 		cubes_.clear();
 		double start = -extend_;
-		if (size_ == 3)
+		if (cubeType_ == cubeType::mirrorCube)
 			start = -(xt_ / 2 + yt_ / 2);
 
 		//cube widths are 1, 2, and 3
 		double increment[] = {0, xt_/2 + yt_/2, yt_/2 + zt_/2};
 		double x = start;
-		for (int i = 0; i < size_; ++i, x += (size_ == 3 ? increment[i] : cubeSize_))
+		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : cubeSize_))
 		{
 			double y = start;
-			for (int j = 0; j < size_; ++j, y += (size_ == 3 ? increment[j] : cubeSize_))
+			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : cubeSize_))
 			{
 				double z = start;
-				for (int k = 0; k < size_; ++k, z += (size_ == 3 ? increment[k] : cubeSize_))
+				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : cubeSize_))
 				{
 					Location loc(x, y, z);
 
@@ -702,11 +717,6 @@ namespace mm {
 	//	duration_ = duration;
 	//}
 
-	void RubiksCubeModel_v8::setRubiksCubeSize(int size)
-	{
-		size_ = size;
-	}
-
 	void RubiksCubeModel_v8::render()
 	{
 #ifdef _DEBUG
@@ -810,7 +820,10 @@ namespace mm {
 		int offsetDist = (1 + size_) * cubeSize_; //distance of mirror image plane from the cube face
 		const float textureExtend = cubeSize_ / 2.0;
 		double xt, yt, zt;
-		pCube.getThickness(xt, yt, zt);
+		xt = yt = zt = cubeSize_;
+
+		if (cubeType_ == cubeType::mirrorCube)
+			pCube.getThickness(xt, yt, zt);
 
 		xt /= 2.0;
 		yt /= 2.0;
@@ -1840,7 +1853,7 @@ namespace mm {
 				for (auto& obj : cubes_)
 				{
 					Cube& cube = *obj;
-					if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_))
+					if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_, cubeType_))
 					{
 						cube.rotate(g_vRotationAxis, stepAngle);
 					}

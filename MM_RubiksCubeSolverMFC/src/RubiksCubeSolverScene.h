@@ -64,7 +64,8 @@ namespace mm {
 		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
 		void fitToScreen();
-		void setRubiksCubeLengthWidthHeight(double length, double width, double height);
+		bool activateRubiksCube();
+		bool activateMirrorCube();
 		int getRubiksCubeSize() { return rubiksCubeSize_; }
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status);
 		bool pauseAnimation(bool pause);

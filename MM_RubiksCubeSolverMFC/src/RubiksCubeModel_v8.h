@@ -75,6 +75,12 @@ namespace mm {
 		//	All = 64 - 1 //Stores All flags from 1 to 32
 		//};
 
+		enum class cubeType
+		{
+			rubiksCube,
+			mirrorCube
+		};
+
 		enum Face
 		{
 			Up = 0,
@@ -343,7 +349,7 @@ namespace mm {
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
-			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size) const;
+			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v8::cubeType) const;
 			void setThickness(double x, double y, double z) { x_ = x; y_ = y; z_ = z; }
 			void getThickness(double& x, double& y, double& z) const { x = x_; y = y_; z = z_; }
 
@@ -366,7 +372,6 @@ namespace mm {
 		~RubiksCubeModel_v8();
 		RubiksCubeModel_v8(const RubiksCubeModel_v8& copy);
 
-		void setRubiksCubeLengthWidthHeight(double length, double width, double height) override;
 		void setAnimate(bool animate) override { animate_ = animate; }
 		bool getAnimate() { return animate_; }
 		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
@@ -382,7 +387,9 @@ namespace mm {
 		bool IsFaceSolved(Face face);
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) override;
 		//void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
-		void setRubiksCubeSize(int size) override;
+
+		bool activateRubiksCube() override;
+		bool activateMirrorCube() override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;
@@ -456,7 +463,7 @@ namespace mm {
 		//vector< vector<Cube*> > layerR_; //Right layer
 		//vector< vector<Cube*> > layerU_; //Upper layer
 		//vector< vector<Cube*> > layerD_; //Down layer
-		int size_;
+		int size_{ 3 };
 		bool g_bRotating;
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
@@ -464,9 +471,12 @@ namespace mm {
 		int g_nLayerIndexFrom;
 		int g_nLayerIndexTo;
 		double g_nRotationAngle;
-		int cubeSize_;
-		double extend_;
-		double xt_, yt_, zt_;
+		int cubeSize_{ 2 };
+		double extend_{ cubeSize_ * (size_ - 1) / 2.0 };
+		double xt_{ 1.0 };
+		double yt_{ 2.0 };
+		double zt_{ 3.0 };
+		cubeType cubeType_{ cubeType::rubiksCube };
 
 		int scramblingSteps_;
 		string scramblingAlgo_;

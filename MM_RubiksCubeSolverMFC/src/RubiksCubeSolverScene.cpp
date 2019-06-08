@@ -339,11 +339,14 @@ namespace mm {
 		//2		04		- 17			13
 	}
 
-	void RubiksCubeSolverScene::setRubiksCubeLengthWidthHeight(double length, double width, double height)
+	bool RubiksCubeSolverScene::activateRubiksCube()
 	{
-		if (fabs(length - width) > 0.0001 || fabs(width - height) > 0.0001)
-			rubicCubeModel_->setRubiksCubeSize(3); //most probably its not a Rubik's cube
-		rubicCubeModel_->setRubiksCubeLengthWidthHeight(length, width, height);
+		return rubicCubeModel_->activateRubiksCube();
+	}
+
+	bool RubiksCubeSolverScene::activateMirrorCube()
+	{
+		return rubicCubeModel_->activateMirrorCube();
 	}
 
 	void RubiksCubeSolverScene::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
