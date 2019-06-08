@@ -34,7 +34,7 @@
 using namespace std;
 
 //#include "Resource.h"
-#include "RubiksCubeModel_v8.h"
+#include "RubiksCubeModel_v9.h"
 #include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
@@ -49,19 +49,19 @@ namespace mm {
 	}
 
 	//Factory function definition
-	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v8(int size)
+	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v9(int size)
 	{
-		return make_unique<RubiksCubeModel_v8>(size, 2.0, 2.0, 2.0);
+		return make_unique<RubiksCubeModel_v9>(size, 2.0, 2.0, 2.0);
 	}
 
 	//Create a global object, so that its constructor is called before main and the factory map is initialized before main
-	static RegisterRubiksCubeFactoryFunction object("RubiksCubeModel_v8", createRubiksCubeModel_v8);
+	static RegisterRubiksCubeFactoryFunction object("RubiksCubeModel_v9", createRubiksCubeModel_v9);
 
-	//==================== RubiksCubeModel_v8::Cube =========================
+	//==================== RubiksCubeModel_v9::Cube =========================
 
-	const int RubiksCubeModel_v8::Cube::FACE_COUNT /* = 6*/;
-	const double RubiksCubeModel_v8::scale_ = 1.0;
-	const vector<string> RubiksCubeModel_v8::statusStrings{
+	const int RubiksCubeModel_v9::Cube::FACE_COUNT /* = 6*/;
+	const double RubiksCubeModel_v9::scale_ = 1.0;
+	const vector<string> RubiksCubeModel_v9::statusStrings{
 		"Scrambled",
 		"Cross",
 		"First Two Layers",
@@ -70,7 +70,7 @@ namespace mm {
 		"Solved"
 	};
 
-	const RubiksCubeModel_v8::ColorRGB RubiksCubeModel_v8::ColorRGB::RGBColors[7] = {
+	const RubiksCubeModel_v9::ColorRGB RubiksCubeModel_v9::ColorRGB::RGBColors[7] = {
 		ColorRGB{ 255, 255, 0 },
 		ColorRGB{ 255, 0, 0 },
 		ColorRGB{ 0, 0, 255 },
@@ -80,7 +80,7 @@ namespace mm {
 		ColorRGB{ 0, 0, 0 }
 	};
 
-	RubiksCubeModel_v8::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location)
+	RubiksCubeModel_v9::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location)
 		: faces_(FACE_COUNT)
 	{
 		faces_[Up] = cTop;
@@ -123,11 +123,11 @@ namespace mm {
 		matrix_[14] = location_.z_ * scale_;
 	}
 
-	RubiksCubeModel_v8::Cube::~Cube(void)
+	RubiksCubeModel_v9::Cube::~Cube(void)
 	{
 	}
 
-	Color RubiksCubeModel_v8::Cube::GetFaceColor(Face eFace) const
+	Color RubiksCubeModel_v9::Cube::GetFaceColor(Face eFace) const
 	{
 		return faces_[eFace];
 	}
@@ -256,7 +256,7 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v8::Cube::rotate(CVector3 rotationAxis, double rotationAngle)
+	void RubiksCubeModel_v9::Cube::rotate(CVector3 rotationAxis, double rotationAngle)
 	{
 		if (fabs(rotationAngle) < 0.00001)
 			return;
@@ -288,7 +288,7 @@ namespace mm {
 		glPopMatrix();
 	}
 
-	void RubiksCubeModel_v8::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
+	void RubiksCubeModel_v9::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
 	{
 		int numRotations = fabs(rotationAngle) / 90;
 		if(rotationAxis == CVector3::XAxis)
@@ -324,7 +324,7 @@ namespace mm {
 	}
 
 	// Aound X axis
-	void RubiksCubeModel_v8::Cube::TiltUp()
+	void RubiksCubeModel_v9::Cube::TiltUp()
 	{
 		Color temp1 = faces_[Up];
 		faces_[Up] = faces_[Front];
@@ -334,7 +334,7 @@ namespace mm {
 	}
 
 	// Aound X axis
-	void RubiksCubeModel_v8::Cube::TiltDown()
+	void RubiksCubeModel_v9::Cube::TiltDown()
 	{
 		Color temp1 = faces_[Up];
 		faces_[Up] = faces_[Back];
@@ -344,7 +344,7 @@ namespace mm {
 	}
 
 	//Around Y axis
-	void RubiksCubeModel_v8::Cube::TurnLeft()
+	void RubiksCubeModel_v9::Cube::TurnLeft()
 	{
 		Color temp1 = faces_[Front];
 		faces_[Front] = faces_[Right];
@@ -354,7 +354,7 @@ namespace mm {
 	}
 
 	//Around Y axis
-	void RubiksCubeModel_v8::Cube::TurnRight()
+	void RubiksCubeModel_v9::Cube::TurnRight()
 	{
 		Color temp1 = faces_[Front];
 		faces_[Front] = faces_[Left];
@@ -364,7 +364,7 @@ namespace mm {
 	}
 
 	//Around Z axis
-	void RubiksCubeModel_v8::Cube::TiltLeft()
+	void RubiksCubeModel_v9::Cube::TiltLeft()
 	{
 		Color temp1 = faces_[Up];
 		faces_[Up] = faces_[Right];
@@ -374,7 +374,7 @@ namespace mm {
 	}
 
 	//Around Z axis
-	void RubiksCubeModel_v8::Cube::TiltRight()
+	void RubiksCubeModel_v9::Cube::TiltRight()
 	{
 		Color temp1 = faces_[Up];
 		faces_[Up] = faces_[Left];
@@ -383,7 +383,7 @@ namespace mm {
 		faces_[Right] = temp1;
 	}
 
-	bool RubiksCubeModel_v8::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend, RubiksCubeModel_v8::cubeType type) const
+	bool RubiksCubeModel_v9::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend, RubiksCubeModel_v9::cubeType type) const
 	{
 		if (rotatingSection == All)
 			return true;
@@ -468,9 +468,9 @@ namespace mm {
 		return retVal;
 	}
 
-	//==================== RubiksCubeModel_v8 =========================
+	//==================== RubiksCubeModel_v9 =========================
 
-	RubiksCubeModel_v8::RubiksCubeModel_v8(int size, double xt, double yt, double zt)
+	RubiksCubeModel_v9::RubiksCubeModel_v9(int size, double xt, double yt, double zt)
 		//: //cubes_(vector< vector< vector<Cube> > > (size, vector< vector<Cube> >(size, vector<Cube>(size)) ) ),
 		//layerF_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//layerB_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
@@ -525,7 +525,7 @@ namespace mm {
 
 	}
 
-	RubiksCubeModel_v8::RubiksCubeModel_v8(const RubiksCubeModel_v8& copy)
+	RubiksCubeModel_v9::RubiksCubeModel_v9(const RubiksCubeModel_v9& copy)
 		: //cubes_(copy.cubes_),
 		size_(copy.size_),
 		//cubeSize_(copy.cubeSize_),
@@ -554,11 +554,11 @@ namespace mm {
 		}
 	}
 
-	RubiksCubeModel_v8::~RubiksCubeModel_v8()
+	RubiksCubeModel_v9::~RubiksCubeModel_v9()
 	{
 	}
 
-	bool RubiksCubeModel_v8::activateRubiksCube()
+	bool RubiksCubeModel_v9::activateRubiksCube()
 	{
 		cubeType_ = cubeType::rubiksCube;
 		//int size = 3;
@@ -569,7 +569,7 @@ namespace mm {
 		return true;
 	}
 
-	bool RubiksCubeModel_v8::activateMirrorCube()
+	bool RubiksCubeModel_v9::activateMirrorCube()
 	{
 		cubeType_ = cubeType::mirrorCube;
 		int size = 3;
@@ -580,7 +580,7 @@ namespace mm {
 		return true;
 	}
 
-	void RubiksCubeModel_v8::ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui)
+	void RubiksCubeModel_v9::ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui)
 	{
 		size_ = size;
 		extend_ = xt * (size_ - 1) / 2.0;
@@ -637,7 +637,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v8::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
+	string RubiksCubeModel_v9::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		animate_ = animate;
 		pUi_ = &ui;
@@ -684,7 +684,7 @@ namespace mm {
 		return solution;
 	}
 
-	void RubiksCubeModel_v8::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
+	void RubiksCubeModel_v9::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
 		unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status)
 	{
 		size = size_;
@@ -699,7 +699,7 @@ namespace mm {
 		{
 			if (i == static_cast<int>(status_))
 				statusStr += "[";
-			statusStr += RubiksCubeModel_v8::statusStrings[i];
+			statusStr += RubiksCubeModel_v9::statusStrings[i];
 			if (i == static_cast<int>(status_))
 				statusStr += "]";
 			if(i < static_cast<int>(status::eMaxStatus) - 1)
@@ -717,7 +717,7 @@ namespace mm {
 		status = statusStr;
 	}
 
-	//void RubiksCubeModel_v8::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
+	//void RubiksCubeModel_v9::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
 	//{
 	//	scramblingSteps_ = scramblingSteps;
 	//	scramblingAlgo_ = scramblingAlgo;
@@ -726,7 +726,7 @@ namespace mm {
 	//	duration_ = duration;
 	//}
 
-	void RubiksCubeModel_v8::render()
+	void RubiksCubeModel_v9::render()
 	{
 #ifdef _DEBUG
 		// Draw Axis
@@ -817,7 +817,7 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v8::renderIndividualCube(const RubiksCubeModel_v8::Cube& pCube, const RubiksCubeModel_v8::Location& location)
+	void RubiksCubeModel_v9::renderIndividualCube(const RubiksCubeModel_v9::Cube& pCube, const RubiksCubeModel_v9::Location& location)
 	{
 		//TODO:
 		// draw back faces only for the rotating section and the neighbouring sections
@@ -1143,7 +1143,7 @@ namespace mm {
 		glPopMatrix();
 	}
 
-	unique_ptr<RubiksCubeModel_v8::Cube> RubiksCubeModel_v8::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
+	unique_ptr<RubiksCubeModel_v9::Cube> RubiksCubeModel_v9::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
 	{
 		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
 		double xtCurrent = yt;
@@ -1209,7 +1209,7 @@ namespace mm {
 		return std::move(retVal);
 	}
 
-	//const RubiksCubeModel_v8::Cube& RubiksCubeModel_v8::GetCube(double x, double y, double z)
+	//const RubiksCubeModel_v9::Cube& RubiksCubeModel_v9::GetCube(double x, double y, double z)
 	//{
 	//	//if (!IsValidCube(x, y, z))
 	//	//	RubiksCubeSolverUtils::RunTimeAssert
@@ -1217,7 +1217,7 @@ namespace mm {
 	//	return *cubes_[Location(cubeSize_ * (x - 1), cubeSize_ * (y - 1), cubeSize_ * (z - 1))];
 	//}
 
-	RubiksCubeModel_v8::Cube& RubiksCubeModel_v8::GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3)
+	RubiksCubeModel_v9::Cube& RubiksCubeModel_v9::GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3)
 	{
 		RubiksCubeSolverUtils::RunTimeAssert(layer1 != layer2 && layer2 != layer3);
 
@@ -1350,14 +1350,14 @@ namespace mm {
 		}
 	}
 
-	bool RubiksCubeModel_v8::IsValidCube(int x, int y, int z)
+	bool RubiksCubeModel_v9::IsValidCube(int x, int y, int z)
 	{
 		return (x >= 0 && x < size_) &&
 			(y >= 0 && y < size_) &&
 			(z >= 0 && z < size_);
 	}
 
-	bool RubiksCubeModel_v8::isSolved()
+	bool RubiksCubeModel_v9::isSolved()
 	{
 		return IsFaceSolved(Up) &&
 			IsFaceSolved(Down) &&
@@ -1367,7 +1367,7 @@ namespace mm {
 			IsFaceSolved(Back);
 	}
 
-	bool RubiksCubeModel_v8::IsFaceSolved(RubiksCubeModel_v8::Face face)
+	bool RubiksCubeModel_v9::IsFaceSolved(RubiksCubeModel_v9::Face face)
 	{
 		fptr xcomp = defaultFun;
 		fptr ycomp = defaultFun;
@@ -1484,28 +1484,28 @@ namespace mm {
 		return true;
 	}
 
-	unique_ptr<RubiksCubeModel> RubiksCubeModel_v8::copy()
+	unique_ptr<RubiksCubeModel> RubiksCubeModel_v9::copy()
 	{
-		return make_unique<RubiksCubeModel_v8>(*this);
+		return make_unique<RubiksCubeModel_v9>(*this);
 	}
 
-	string RubiksCubeModel_v8::getModelName()
+	string RubiksCubeModel_v9::getModelName()
 	{
 		return "RubiksCubeModel_v1";
 	}
 
-	int RubiksCubeModel_v8::getDimension()
+	int RubiksCubeModel_v9::getDimension()
 	{
 		return size_;
 	}
 
-	bool RubiksCubeModel_v8::pauseAnimation(bool pause)
+	bool RubiksCubeModel_v9::pauseAnimation(bool pause)
 	{
 		pauseAnumation_ = pause;
 		return pauseAnumation_;
 	}
 
-	void RubiksCubeModel_v8::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
+	void RubiksCubeModel_v9::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		animate_ = animate;
 		pUi_ = &ui;
@@ -1532,7 +1532,7 @@ namespace mm {
 			status_ = status::scrambled;
 	}
 
-	bool RubiksCubeModel_v8::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
+	bool RubiksCubeModel_v9::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
 	{
 		animate_ = animate;
 		pUi_ = &ui;
@@ -1565,8 +1565,8 @@ namespace mm {
 		return true;
 	}
 
-	//int RubiksCubeModel_v8::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
-	int RubiksCubeModel_v8::applyAlgorithm(const string& algorithm)
+	//int RubiksCubeModel_v9::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
+	int RubiksCubeModel_v9::applyAlgorithm(const string& algorithm)
 	{
 		//Check if the algo is valid
 		if (!extractSteps(algorithm))
@@ -1612,7 +1612,7 @@ namespace mm {
 		return algoSteps_.size();
 	}
 
-	bool RubiksCubeModel_v8::extractSteps(const string& algorithm)
+	bool RubiksCubeModel_v9::extractSteps(const string& algorithm)
 	{
 		algoSteps_.clear();
 		invalidStep_.clear();
@@ -1710,7 +1710,7 @@ namespace mm {
 		return true;
 	}
 
-	//const CVector3& RubiksCubeModel_v8::getRotationAxis(Groups rotationSection)
+	//const CVector3& RubiksCubeModel_v9::getRotationAxis(Groups rotationSection)
 	//{
 	//	switch (rotationSection)
 	//	{
@@ -1756,9 +1756,9 @@ namespace mm {
 	//	}
 	//}
 
-	//void RubiksCubeModel_v8::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
-	//void RubiksCubeModel_v8::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
-	void RubiksCubeModel_v8::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations)
+	//void RubiksCubeModel_v9::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
+	//void RubiksCubeModel_v9::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
+	void RubiksCubeModel_v9::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -1917,14 +1917,14 @@ namespace mm {
 	}
 
 
-	void RubiksCubeModel_v8::fixRubiksCubeFaces()
+	void RubiksCubeModel_v9::fixRubiksCubeFaces()
 	{
 		fixRubiksCubeFaces(g_vRotationAxis, g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, g_nRotationAngle);
 	}
 
-	void RubiksCubeModel_v8::fixRubiksCubeFaces(CVector3 rotationAxis, RubiksCubeModel_v8::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
+	void RubiksCubeModel_v9::fixRubiksCubeFaces(CVector3 rotationAxis, RubiksCubeModel_v9::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
 	{
-		if (rotatingSection == RubiksCubeModel_v8::Face::All)
+		if (rotatingSection == RubiksCubeModel_v9::Face::All)
 		{
 			for (auto& obj : cubes_)
 			{
@@ -1987,43 +1987,43 @@ namespace mm {
 
 			switch (rotatingSection)
 			{
-			case RubiksCubeModel_v8::Face::Left:
+			case RubiksCubeModel_v9::Face::Left:
 				x = -extend_ + diff;
 				pi = &y;
 				pj = &z;
 				xcomp = fun[currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::Right:
+			case RubiksCubeModel_v9::Face::Right:
 				x = +extend_ + diff;
 				pi = &y;
 				pj = &z;
 				xcomp = fun[maxLayerIndex - currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::Down:
+			case RubiksCubeModel_v9::Face::Down:
 				pi = &x;
 				y = -extend_ + diff;
 				pj = &z;
 				ycomp = fun[currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::Up:
+			case RubiksCubeModel_v9::Face::Up:
 				pi = &x;
 				y = +extend_ + diff;
 				pj = &z;
 				ycomp = fun[maxLayerIndex - currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::Back:
+			case RubiksCubeModel_v9::Face::Back:
 				pi = &x;
 				pj = &y;
 				z = -extend_ + diff;
 				zcomp = fun[currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::Front:
+			case RubiksCubeModel_v9::Face::Front:
 				pi = &x;
 				pj = &y;
 				z = +extend_ + diff;
 				zcomp = fun[maxLayerIndex - currentLayer];
 				break;
-			case RubiksCubeModel_v8::Face::All:
+			case RubiksCubeModel_v9::Face::All:
 			default:
 				RubiksCubeSolverUtils::RunTimeAssert(false, "Unrecognized face");
 			}
@@ -2081,7 +2081,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v8::generateScramblingAlgo(int length, bool includeNonStandardRotations)
+	string RubiksCubeModel_v9::generateScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		vector<char> charSet{
 			//Standard rotations
@@ -2141,8 +2141,8 @@ namespace mm {
 	// Solver NxNxN
 	//=======================================================================================================
 
-	//RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v8& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
-	RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v8& rubiksCube)
+	//RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v9& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
+	RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v9& rubiksCube)
 		: rubiksCube_(rubiksCube),
 		//animate_(animate),
 		//ui_(ui),
@@ -2150,7 +2150,7 @@ namespace mm {
 	{
 	}
 
-	string RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::solve(unsigned int& solutionSteps)
+	string RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::solve(unsigned int& solutionSteps)
 	{
 		if (rubiksCube_.getSize() == 1)
 		{
@@ -2189,7 +2189,7 @@ namespace mm {
 		return rubiksCube_.getSolution();
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::reduceTo3x3x3()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::reduceTo3x3x3()
 	{
 		int size = rubiksCube_.getSize();
 		if (size <= 3)
@@ -2262,7 +2262,7 @@ namespace mm {
 		applyAlgorithm("Y");
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_singleFace(Color targetColor)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_singleFace(Color targetColor)
 	{
 		//Always fix center cubes on top face
 		//First search Top and Front face for target cubes, then Right, Down, Left, Back (we are fixing exactly in reverse order)
@@ -2442,7 +2442,7 @@ namespace mm {
 
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromUpToRightFace(Face fromFace, const string& preMove,
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromUpToRightFace(Face fromFace, const string& preMove,
 		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
 		int columnFromLeftToAvoid, int centerColumnToAvoid)
 	{
@@ -2551,7 +2551,7 @@ namespace mm {
 		return false;
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromFrontToRightFace(Face fromFace, const string& preMove,
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromFrontToRightFace(Face fromFace, const string& preMove,
 		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
 		int columnFromLeftToAvoid, int centerColumnToAvoid)
 	{
@@ -2655,7 +2655,7 @@ namespace mm {
 		return false;
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
 		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor)
 	{
 		vector<Face> faces(0);
@@ -2763,7 +2763,7 @@ namespace mm {
 		return false;
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces2(Color targetColor1, Color targetColor2)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces2(Color targetColor1, Color targetColor2)
 	{
 		Color targetColorFrontFace = targetColor1;
 		Color targetColorRightFace = targetColor2;
@@ -2829,7 +2829,7 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces(Color targetColor1, Color targetColor2)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces(Color targetColor1, Color targetColor2)
 	{
 		Color targetColorFrontFace = targetColor1;
 		Color targetColorRightFace = targetColor2;
@@ -3030,7 +3030,7 @@ namespace mm {
 		}
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo)
 	{
 		int size = rubiksCube_.getSize();
 		bool lineAlreadyPresent = true;
@@ -3049,7 +3049,7 @@ namespace mm {
 	}
 
 	//This version does not change any structure on Right Face, but rearranges Front Face
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
 		int startRowFromTopToAvoid, int endRowFromTopToAvoid)
 	{
 		int size = rubiksCube_.getSize();
@@ -3183,7 +3183,7 @@ namespace mm {
 	}
 
 	//This version does not change any structure on Right Face, but rearranges Front Face
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixCenterCubes_twoFaces_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor)
 	{
 		int size = rubiksCube_.getSize();
 		bool retVal = false;
@@ -3224,7 +3224,7 @@ namespace mm {
 		return retVal;
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color targetColorUp, Color targetColorFront)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color targetColorUp, Color targetColorFront)
 	{
 		//Always fix front and back edges on top face
 		int size = rubiksCube_.getSize();
@@ -3345,7 +3345,7 @@ namespace mm {
 		//applyAlgorithm("F'");
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes_ensureUpRightEdgeUnsolved()
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes_ensureUpRightEdgeUnsolved()
 	{
 		int j = 0;
 		vector<string> algoToCheckAllUpRightEdges{
@@ -3370,7 +3370,7 @@ namespace mm {
 
 	//This function searches in all edges (searches Front-Up edge only when index = -1)
 	//This function ensures that the cube is in expected orientation while taking to Up-Back edge
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge(int targetIndexLeft, Color expectedUp, Color expectedBack)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge(int targetIndexLeft, Color expectedUp, Color expectedBack)
 	{
 		int size = rubiksCube_.getSize();
 		int targetBits = (1 << expectedBack) | (1 << expectedUp);
@@ -3525,7 +3525,7 @@ namespace mm {
 		return found;
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge_searchEdge(int targetIndex, Color targetColorUp, Color targetColorFront,
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge_searchEdge(int targetIndex, Color targetColorUp, Color targetColorFront,
 		Face face1, Face face2, Face face3, const string& algo, bool sameOrientation)
 	{
 		int size = rubiksCube_.getSize();
@@ -3563,7 +3563,7 @@ namespace mm {
 		return false;
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes_lastTwoEdges(Color targetColorUp1, Color targetColorFront1, Color targetColorUp2, Color targetColorBack2)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes_lastTwoEdges(Color targetColorUp1, Color targetColorFront1, Color targetColorUp2, Color targetColorBack2)
 	{
 		bool frontEdgeSolved = fixEdgeCubes_checkIfEdgeIsAlreadySolved(targetColorUp1, targetColorFront1);
 		bool backEdgeSolved = fixEdgeCubes_checkIfEdgeIsAlreadySolved(targetColorUp2, targetColorBack2);
@@ -3954,7 +3954,7 @@ namespace mm {
 		return true;
 	}
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::fixEdgeCubes_checkIfEdgeIsAlreadySolved(Color targetColorUp, Color targetColorFront)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::fixEdgeCubes_checkIfEdgeIsAlreadySolved(Color targetColorUp, Color targetColorFront)
 	{
 		int size = rubiksCube_.getSize();
 		bool hasCenterPiece = (size % 2 == 1);
@@ -4015,13 +4015,13 @@ namespace mm {
 		return true;
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
 	{
 		//rubiksCube_.applyAlgorithm(step, rubiksCube_.getAnimate(), ui_);
 		rubiksCube_.applyAlgorithm(step);
 	}
 
-	//bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)
+	//bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)
 	//{
 	//	int firstCount = 0;
 	//	int secondCount = 0;
@@ -4038,7 +4038,7 @@ namespace mm {
 	//	return firstCount == 1 && secondCount == 1;
 	//}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom)
 	{
 		//Cube* currentCube = nullptr;
 
@@ -4177,7 +4177,7 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::positionTheCube()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::positionTheCube()
 	{
 		int size = rubiksCube_.getSize();
 		//if (size <= 2)
@@ -4263,7 +4263,7 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildCross()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildCross()
 	{
 		if (rubiksCube_.getSize() <= 2)
 			return;
@@ -4287,7 +4287,7 @@ namespace mm {
 	}
 
 	/*
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom)
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom)
 	{
 		Cube currentCube;
 		Color c1, c2, c3;
@@ -4391,7 +4391,7 @@ namespace mm {
 	}
 	*/
 
-	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight)
+	bool RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight)
 	{
 		//Cube currentCube;
 		Color c1, c2, c3, c4, c5, c6, c7;
@@ -4715,7 +4715,7 @@ namespace mm {
 		return true;
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildF2L()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildF2L()
 	{
 		//position corner pieces
 		buildF2L_PositionEdgeColumns(Color::Blue, Color::Red);
@@ -4734,7 +4734,7 @@ namespace mm {
 		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.IsFaceSolved(Down), "F2L failed");
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildOLL()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildOLL()
 	{
 		// Step 1: build yellow cross on top face
 
@@ -5234,7 +5234,7 @@ namespace mm {
 		RubiksCubeSolverUtils::RunTimeAssert(OLL_step2, "OLL step 2: failed");
 	}
 
-	void RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildPLL()
+	void RubiksCubeModel_v9::RubiksCubeSolver_NxNxN::buildPLL()
 	{
 		//Step 1
 		bool PLL_step1 = false;

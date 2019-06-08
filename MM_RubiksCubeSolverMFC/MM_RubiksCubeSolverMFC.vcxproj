@@ -191,6 +191,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\RubiksCubeModel_v9.h" />
     <ClInclude Include="src\RubiksCubeModel_v8.h" />
     <ClInclude Include="MM_RubiksCubeSolverMFC.h" />
     <ClInclude Include="MM_RubiksCubeSolverMFCDlg.h" />
@@ -213,6 +214,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\RubiksCubeModel_v9.cpp" />
     <ClCompile Include="src\RubiksCubeModel_v8.cpp" />
     <ClCompile Include="MM_RubiksCubeSolverMFC.cpp" />
     <ClCompile Include="MM_RubiksCubeSolverMFCDlg.cpp" />
