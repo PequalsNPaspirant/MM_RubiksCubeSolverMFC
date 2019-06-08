@@ -49,7 +49,7 @@ namespace mm {
 	//Factory function definition
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v8(int size)
 	{
-		return make_unique<RubiksCubeModel_v8>(size);
+		return make_unique<RubiksCubeModel_v8>(size, 2.0, 2.0, 2.0);
 	}
 
 	//Create a global object, so that its constructor is called before main and the factory map is initialized before main
@@ -78,7 +78,7 @@ namespace mm {
 		ColorRGB{ 0, 0, 0 }
 	};
 
-	RubiksCubeModel_v8::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location, int cubeSize)
+	RubiksCubeModel_v8::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location)
 		: faces_(FACE_COUNT)
 	{
 		faces_[Up] = cTop;
@@ -89,7 +89,7 @@ namespace mm {
 		faces_[Back] = cBack;
 
 		location_ = location;
-		cubeSize_ = cubeSize;
+		//cubeSize_ = cubeSize;
 		//group_ = group;
 
 		GLenum result = 0;
@@ -406,7 +406,7 @@ namespace mm {
 			Back = 5,
 			*/
 			
-			double diff = cubeSize_ * diffData[rotatingSection] * (layerIndex - 1);
+			double diff = xt_ * diffData[rotatingSection] * (layerIndex - 1);
 			x = y = z = -1;
 
 			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
@@ -466,8 +466,8 @@ namespace mm {
 
 	//==================== RubiksCubeModel_v8 =========================
 
-	RubiksCubeModel_v8::RubiksCubeModel_v8(int size)
-		: //cubes_(vector< vector< vector<Cube> > > (size, vector< vector<Cube> >(size, vector<Cube>(size)) ) ),
+	RubiksCubeModel_v8::RubiksCubeModel_v8(int size, double xt, double yt, double zt)
+		//: //cubes_(vector< vector< vector<Cube> > > (size, vector< vector<Cube> >(size, vector<Cube>(size)) ) ),
 		//layerF_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//layerB_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//layerL_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
@@ -475,7 +475,7 @@ namespace mm {
 		//layerU_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//layerD_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
 		//cubes_(27),
-		size_(size),
+		//size_(size),
 		//cubeSize_(2),
 		//extend_(cubeSize_ * (size - 1) / 2.0),
 		//g_bRotating(false),
@@ -483,16 +483,17 @@ namespace mm {
 		//g_vRotationAxis(0, 0, 0),
 		//g_nRotatingSection(None),
 		//g_nRotationAngle(0)
-		scramblingSteps_(0),
-		scramblingAlgo_(""),
-		isScrambling_(false),
-		solutionSteps_(0),
-		solution_(""),
-		duration_(0),
-		animate_(false),
-		pUi_(nullptr)
+		//scramblingSteps_(0),
+		//scramblingAlgo_(""),
+		//isScrambling_(false),
+		//solutionSteps_(0),
+		//solution_(""),
+		//duration_(0),
+		//animate_(false),
+		//pUi_(nullptr)
 	{
-		ResetCube(false, nullptr);
+		bool animate = false;
+		ResetCube(size, xt, yt, zt, animate, nullptr);
 
 		//for(int i = 0; i < size; ++i)
 		//	for (int j = 0; j < size; ++j)
@@ -523,7 +524,7 @@ namespace mm {
 	RubiksCubeModel_v8::RubiksCubeModel_v8(const RubiksCubeModel_v8& copy)
 		: //cubes_(copy.cubes_),
 		size_(copy.size_),
-		cubeSize_(copy.cubeSize_),
+		//cubeSize_(copy.cubeSize_),
 		extend_(copy.extend_),
 		g_bRotating(copy.g_bRotating),
 		g_bFlipRotation(copy.g_bFlipRotation),
@@ -537,10 +538,10 @@ namespace mm {
 		isScrambling_(copy.isScrambling_),
 		solutionSteps_(copy.solutionSteps_),
 		solution_(copy.solution_),
-		duration_(copy.duration_),
-		xt_(copy.xt_),
-		yt_(copy.yt_),
-		zt_(copy.zt_)
+		duration_(copy.duration_)
+		//xt_(copy.xt_),
+		//yt_(copy.yt_),
+		//zt_(copy.zt_)
 	{
 		for (auto& obj : copy.cubes_)
 		{
@@ -556,25 +557,29 @@ namespace mm {
 	bool RubiksCubeModel_v8::activateRubiksCube()
 	{
 		cubeType_ = cubeType::rubiksCube;
-		//size_ = 3;
-		cubeSize_ = 2;
-		ResetCube(false, nullptr);
+		//int size = 3;
+		double xt = 1.0;
+		double yt = 2.0;
+		double zt = 3.0;
+		ResetCube(size_, xt, yt, zt, false, nullptr);
 		return true;
 	}
 
 	bool RubiksCubeModel_v8::activateMirrorCube()
 	{
 		cubeType_ = cubeType::mirrorCube;
-		size_ = 3;
-		xt_ = 1.0;
-		yt_ = 2.0;
-		zt_ = 3.0;
-		ResetCube(false, nullptr);
+		int size = 3;
+		double xt = 1.0;
+		double yt = 2.0;
+		double zt = 3.0;
+		ResetCube(size, xt, yt, zt, false, nullptr);
 		return true;
 	}
 
-	void RubiksCubeModel_v8::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
+	void RubiksCubeModel_v8::ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui)
 	{
+		size_ = size;
+		extend_ = xt * (size_ - 1) / 2.0;
 		animate_ = animate;
 		pUi_ = ui;
 
@@ -596,25 +601,25 @@ namespace mm {
 		cubes_.clear();
 		double start = -extend_;
 		if (cubeType_ == cubeType::mirrorCube)
-			start = -(xt_ / 2 + yt_ / 2);
+			start = -(xt / 2 + yt / 2);
 
 		//cube widths are 1, 2, and 3
-		double increment[] = {0, xt_/2 + yt_/2, yt_/2 + zt_/2};
+		double increment[] = {0, xt/2 + yt/2, yt/2 + zt/2};
 		double x = start;
-		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : cubeSize_))
+		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : xt))
 		{
 			double y = start;
-			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : cubeSize_))
+			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : xt))
 			{
 				double z = start;
-				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : cubeSize_))
+				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : xt))
 				{
 					Location loc(x, y, z);
 
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_.push_back(CreateCube(i, j, k, loc));
+						cubes_.push_back(CreateCube(i, j, k, xt, yt, zt, loc));
 				}
 			}
 		}
@@ -725,27 +730,27 @@ namespace mm {
 		// x
 		glColor3f(1.0f, 0.6f, 0.0f); // orange
 		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(scale_ * cubeSize_ * 3, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 3, 0.0, 0.0);
 		glColor3f(1.0f, 0.0f, 0.0f); // red
-		glVertex3d(scale_ * cubeSize_ * 3, 0.0, 0.0);
-		glVertex3d(scale_ * cubeSize_ * 4.5f, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 3, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 4.5f, 0.0, 0.0);
 
 		// y
 		//glColor3f(0.0f, 1.0f, 0.0f);  // green
 		glColor3f(1.0f, 1.0f, 1.0f);  // white
 		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, scale_ * cubeSize_ * 3, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 3, 0.0);
 		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
-		glVertex3d(0.0, scale_ * cubeSize_ * 3, 0.0);
-		glVertex3d(0.0, scale_ * cubeSize_ * 4.5f, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 3, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5f, 0.0);
 
 		// z
 		glColor3f(0.0f, 1.0f, 0.0f);  // green
 		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, 0.0, scale_ * cubeSize_ * 3);
+		glVertex3d(0.0, 0.0, scale_ * size_ * 3);
 		glColor3f(0.0f, 0.0f, 1.0f); // blue
-		glVertex3d(0.0, 0.0, scale_ * cubeSize_ * 3);
-		glVertex3d(0.0, 0.0, scale_ * cubeSize_ * 4.5f);
+		glVertex3d(0.0, 0.0, scale_ * size_ * 3);
+		glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
 		glEnd();
 #endif
 
@@ -817,13 +822,14 @@ namespace mm {
 		double y = location.y_;
 		double z = location.z_;
 		//bool mirrorVisibleFaces = true;
-		int offsetDist = (1 + size_) * cubeSize_; //distance of mirror image plane from the cube face
-		const float textureExtend = cubeSize_ / 2.0;
+		
 		double xt, yt, zt;
-		xt = yt = zt = cubeSize_;
-
-		if (cubeType_ == cubeType::mirrorCube)
+		//xt = yt = zt = cubeSize_;
+		//if (cubeType_ == cubeType::mirrorCube)
 			pCube.getThickness(xt, yt, zt);
+
+		int offsetDist = (1 + size_) * xt; //distance of mirror image plane from the cube face
+		const float textureExtend = xt / 2.0;
 
 		xt /= 2.0;
 		yt /= 2.0;
@@ -1133,24 +1139,24 @@ namespace mm {
 		glPopMatrix();
 	}
 
-	unique_ptr<RubiksCubeModel_v8::Cube> RubiksCubeModel_v8::CreateCube(double x, double y, double z, const Location& location)
+	unique_ptr<RubiksCubeModel_v8::Cube> RubiksCubeModel_v8::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
 	{
 		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
-		double xt = yt_;
-		double yt = yt_;
-		double zt = yt_;
+		double xtCurrent = yt;
+		double ytCurrent = yt;
+		double ztCurrent = yt;
 
 		if (x == 0)
 		{
 			left = Orange;
 			//right = Black;
-			xt = xt_;
+			xtCurrent = xt;
 		}
 		if (x == size_ - 1)
 		{
 			//left = Black;
 			right = Red;
-			xt = zt_;
+			xtCurrent = zt;
 		}
 		//else
 		//{
@@ -1162,13 +1168,13 @@ namespace mm {
 		{
 			bottom = White;
 			//top = Black;
-			yt = xt_;
+			ytCurrent = xt;
 		}
 		if (y == size_ - 1)
 		{
 			//bottom = Black;
 			top = Yellow;
-			yt = zt_;
+			ytCurrent = zt;
 		}
 		//else
 		//{
@@ -1180,13 +1186,13 @@ namespace mm {
 		{
 			back = Green;
 			//front = Black;
-			zt = xt_;
+			ztCurrent = xt;
 		}
 		if (z == size_ - 1)
 		{
 			//back = Black;
 			front = Blue;
-			zt = zt_;
+			ztCurrent = zt;
 		}
 		//else
 		//{
@@ -1194,8 +1200,8 @@ namespace mm {
 		//	front = Black;
 		//}
 
-		auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location, cubeSize_);
-		retVal->setThickness(xt, yt, zt);
+		auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location);
+		retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
 		return std::move(retVal);
 	}
 
@@ -1211,117 +1217,123 @@ namespace mm {
 	{
 		RubiksCubeSolverUtils::RunTimeAssert(layer1 != layer2 && layer2 != layer3);
 
-		fptr xcomp = nullptr;
-		fptr ycomp = nullptr;
-		fptr zcomp = nullptr;
-
-		Face layer[3] = { layer1, layer2, layer3 };
-		int layerIndex[3] = { layerIndex1, layerIndex2, layerIndex3 };
-		//vector<int> layerIndex;
-		//if(layerIndex.empty())
-		//{
-		//	layerIndex.resize(cubeSize_);
-		//	std::iota(layerIndex.begin(), layerIndex.end(), 1);
-		//};
-
-		fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
-		//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
-
-		for(int i = 0; i < 3; ++i)
+		//if (cubeType_ == cubeType::mirrorCube)
 		{
-			Face currentFace = layer[i];
-			int currentLayer = layerIndex[i] - 1; //modify range to [0, cubeSize_)
-			int maxLayerIndex = size_ - 1;
-			switch (currentFace)
+			fptr xcomp = nullptr;
+			fptr ycomp = nullptr;
+			fptr zcomp = nullptr;
+
+			Face layer[3] = { layer1, layer2, layer3 };
+			int layerIndex[3] = { layerIndex1, layerIndex2, layerIndex3 };
+			//vector<int> layerIndex;
+			//if(layerIndex.empty())
+			//{
+			//	layerIndex.resize(cubeSize_);
+			//	std::iota(layerIndex.begin(), layerIndex.end(), 1);
+			//};
+
+			fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
+			//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
+
+			for (int i = 0; i < 3; ++i)
 			{
-			case Left:
-				//x = -extend_ + cubeSize_ * index;
-				xcomp = fun[currentLayer];
-				break;
-			case Right:
-				//x = extend_ - cubeSize_ * index;
-				xcomp = fun[maxLayerIndex - currentLayer];
-				break;
-			case Down:
-				//y = -extend_ + cubeSize_ * index;
-				ycomp = fun[currentLayer];
-				break;
-			case Up:
-				//y = extend_ - cubeSize_ * index;
-				ycomp = fun[maxLayerIndex - currentLayer];
-				break;
-			case Back:
-				//z = -extend_ + cubeSize_ * index;
-				zcomp = fun[currentLayer];
-				break;
-			case Front:
-				//z = extend_ - cubeSize_ * index;
-				zcomp = fun[maxLayerIndex - currentLayer];
-				break;
+				Face currentFace = layer[i];
+				int currentLayer = layerIndex[i] - 1; //modify range to [0, cubeSize_)
+				int maxLayerIndex = size_ - 1;
+				switch (currentFace)
+				{
+				case Left:
+					//x = -extend_ + cubeSize_ * index;
+					xcomp = fun[currentLayer];
+					break;
+				case Right:
+					//x = extend_ - cubeSize_ * index;
+					xcomp = fun[maxLayerIndex - currentLayer];
+					break;
+				case Down:
+					//y = -extend_ + cubeSize_ * index;
+					ycomp = fun[currentLayer];
+					break;
+				case Up:
+					//y = extend_ - cubeSize_ * index;
+					ycomp = fun[maxLayerIndex - currentLayer];
+					break;
+				case Back:
+					//z = -extend_ + cubeSize_ * index;
+					zcomp = fun[currentLayer];
+					break;
+				case Front:
+					//z = extend_ - cubeSize_ * index;
+					zcomp = fun[maxLayerIndex - currentLayer];
+					break;
+				}
 			}
+
+			RubiksCubeSolverUtils::RunTimeAssert(xcomp != nullptr && ycomp != nullptr && zcomp != nullptr);
+
+			for (auto& obj : cubes_)
+			{
+				Cube& cube = *obj;
+				const Location& loc = cube.getLocation();
+				bool xMatch = (*xcomp)(loc.x_);
+				bool yMatch = (*ycomp)(loc.y_);
+				bool zMatch = (*zcomp)(loc.z_);
+				if (xMatch && yMatch && zMatch)
+					return cube;
+			}
+
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
 		}
-
-		RubiksCubeSolverUtils::RunTimeAssert(xcomp != nullptr && ycomp != nullptr && zcomp != nullptr);
-
-		for (auto& obj : cubes_)
+		//else
 		{
-			Cube& cube = *obj;
-			const Location& loc = cube.getLocation();
-			bool xMatch = (*xcomp)(loc.x_);
-			bool yMatch = (*ycomp)(loc.y_);
-			bool zMatch = (*zcomp)(loc.z_);
-			if (xMatch && yMatch && zMatch)
-				return cube;
+			double xt;
+			cubes_[0]->getThickness(xt, xt, xt);
+			double x, y, z;
+			//double extend_ = (size_ - 1) / 2.0;
+			for (int i = 0; i < 3; ++i)
+			{
+				Face layer;
+				int index = 1;
+				if (i == 0)
+				{
+					layer = layer1;
+					index = layerIndex1 - 1;
+				}
+				else if (i == 1)
+				{
+					layer = layer2;
+					index = layerIndex2 - 1;
+				}
+				else if (i == 2)
+				{
+					layer = layer3;
+					index = layerIndex3 - 1;
+				}
+
+				switch (layer)
+				{
+				case Left:
+					x = -extend_ + xt * index;
+					break;
+				case Right:
+					x = extend_ - xt * index;
+					break;
+				case Down:
+					y = -extend_ + xt * index;
+					break;
+				case Up:
+					y = extend_ - xt * index;
+					break;
+				case Back:
+					z = -extend_ + xt * index;
+					break;
+				case Front:
+					z = extend_ - xt * index;
+					break;
+				}
+			}
+			//return *cubes_[Location(x, y, z)];
 		}
-		
-		RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
-
-		double x, y, z;
-		//double extend_ = (size_ - 1) / 2.0;
-		for (int i = 0; i < 3; ++i)
-		{
-			Face layer;
-			int index = 1;
-			if (i == 0)
-			{
-				layer = layer1;
-				index = layerIndex1 - 1;
-			}
-			else if (i == 1)
-			{
-				layer = layer2;
-				index = layerIndex2 - 1;
-			}
-			else if (i == 2)
-			{
-				layer = layer3;
-				index = layerIndex3 - 1;
-			}
-
-			switch (layer)
-			{
-			case Left:
-				x = -extend_ + cubeSize_ * index;
-				break;
-			case Right:
-				x = extend_ - cubeSize_ * index;
-				break;
-			case Down:
-				y = -extend_ + cubeSize_ * index;
-				break;
-			case Up:
-				y = extend_ - cubeSize_ * index;
-				break;
-			case Back:
-				z = -extend_ + cubeSize_ * index;
-				break;
-			case Front:
-				z = extend_ - cubeSize_ * index;
-				break;
-			}
-		}
-
-		//return *cubes_[Location(x, y, z)];		
 	}
 
 	bool RubiksCubeModel_v8::IsValidCube(int x, int y, int z)
@@ -1923,11 +1935,14 @@ namespace mm {
 			return;
 		}
 
+		double xt;
+		cubes_[0]->getThickness(xt, xt, xt);
+
 		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
 		{
 			//double extend_ = (size_ - 1) / 2.0;
 			static int diffData[6] = { -1, 1, 1, -1, -1, 1 };
-			double diff = cubeSize_ * diffData[rotatingSection] * (layerIndex - 1);
+			double diff = xt * diffData[rotatingSection] * (layerIndex - 1);
 			double x, y, z;
 			double* pi = nullptr;
 			double* pj = nullptr;

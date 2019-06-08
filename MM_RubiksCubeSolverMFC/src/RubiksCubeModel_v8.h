@@ -336,7 +336,7 @@ namespace mm {
 			Cube& operator=(const Cube&) = default;
 			Cube& operator=(Cube&&) = default;
 			Cube(Color cTop, Color cBottom, Color cLeft,
-				Color cRight, Color cFront, Color cBack, const Location& location, int cubeSize);
+				Color cRight, Color cFront, Color cBack, const Location& location);
 			~Cube();
 			Color GetFaceColor(Face eFace) const;
 			void TiltUp();
@@ -350,8 +350,8 @@ namespace mm {
 			void rotate(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v8::cubeType) const;
-			void setThickness(double x, double y, double z) { x_ = x; y_ = y; z_ = z; }
-			void getThickness(double& x, double& y, double& z) const { x = x_; y = y_; z = z_; }
+			void setThickness(double x, double y, double z) { xt_ = x; yt_ = y; zt_ = z; }
+			void getThickness(double& x, double& y, double& z) const { x = xt_; y = yt_; z = zt_; }
 
 			GLfloat matrixf_[16];
 			double matrix_[16];
@@ -362,19 +362,20 @@ namespace mm {
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
 			Location location_;
-			int cubeSize_;
-			double x_, y_, z_; //thicknesses in each direction
+			//int cubeSize_;
+			double xt_, yt_, zt_; //thicknesses in each direction
 			//int group_;
 		};
 
 	public:
-		RubiksCubeModel_v8(int size);
+		RubiksCubeModel_v8(int size, double xt, double yt, double zt);
 		~RubiksCubeModel_v8();
 		RubiksCubeModel_v8(const RubiksCubeModel_v8& copy);
 
 		void setAnimate(bool animate) override { animate_ = animate; }
 		bool getAnimate() { return animate_; }
-		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
+		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override {}
+		void ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui) override;
 		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
 		bool scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep) override;
 		//int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
@@ -449,7 +450,7 @@ namespace mm {
 		};
 
 		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
+		unique_ptr<Cube> CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location);
 		//void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations);
 		void fixRubiksCubeFaces();
@@ -471,11 +472,12 @@ namespace mm {
 		int g_nLayerIndexFrom;
 		int g_nLayerIndexTo;
 		double g_nRotationAngle;
-		int cubeSize_{ 2 };
-		double extend_{ cubeSize_ * (size_ - 1) / 2.0 };
-		double xt_{ 1.0 };
-		double yt_{ 2.0 };
-		double zt_{ 3.0 };
+		//int cubeSize_{ 2 };
+		//double extend_{ cubeSize_ * (size_ - 1) / 2.0 };
+		double extend_;
+		//double xt_{ 1.0 };
+		//double yt_{ 2.0 };
+		//double zt_{ 3.0 };
 		cubeType cubeType_{ cubeType::rubiksCube };
 
 		int scramblingSteps_;
