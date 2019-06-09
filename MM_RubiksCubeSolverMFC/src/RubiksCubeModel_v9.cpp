@@ -1757,8 +1757,8 @@ namespace mm {
 
 	bool RubiksCubeModel_v9::pauseAnimation(bool pause)
 	{
-		pauseAnumation_ = pause;
-		return pauseAnumation_;
+		pauseAnimation_ = pause;
+		return pauseAnimation_;
 	}
 
 	void RubiksCubeModel_v9::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
@@ -2121,72 +2121,76 @@ namespace mm {
 		g_nLayerIndexFrom = layerIndexFrom;
 		g_nLayerIndexTo = layerIndexTo;
 
+		//display step before starting animation for that step
 		if (animate_)
-		{
-			//display step before starting animation for that step
 			pUi_->displayUpdatedStats();
-			g_bRotating = true;
-			int numTotalFrames = pUi_->getFramesPerRotation() * numRotations;
-			double stepAngle = targetAngle / numTotalFrames;
-			//Run the loop for (numTotalFrames - 1) times, to avoid division errors. 
-			//The last step should achive perfect angle exactly equal to targetAngle
-			g_nRotationAngle = 0.0;
-			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
-			for(int step = numTotalFrames; step > 0; --step)
+
+		g_bRotating = true;
+		int numTotalFrames = 1;
+		if (animate_)
+			numTotalFrames = pUi_->getFramesPerRotation() * numRotations;
+		double stepAngle = targetAngle / numTotalFrames;
+		//Run the loop for (numTotalFrames - 1) times, to avoid division errors. 
+		//The last step should achive perfect angle exactly equal to targetAngle
+		g_nRotationAngle = 0.0;
+		int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
+		for(int step = numTotalFrames; step > 0; --step)
+		{
+			if (pUi_->getInterruptAnimation())
+				throw false;
+
+			while (pauseAnimation_)
 			{
+				//We should be able to reset cube while animation is paused
 				if (pUi_->getInterruptAnimation())
 					throw false;
 
-				while (pauseAnumation_)
-				{
-					//We should be able to reset cube while animation is paused
-					if (pUi_->getInterruptAnimation())
-						throw false;
+				pUi_->redrawWindow();
+			}
 
-					pUi_->redrawWindow();
+			g_nRotationAngle += stepAngle;
+
+			//for (auto& obj : cubes_)
+			//{
+			//	Cube& cube = *obj.second;
+			//	if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_, cubeType_))
+			//	{
+			//		cube.rotate(g_vRotationAxis, stepAngle);
+			//	}
+			//}
+
+			if (g_nRotatingSection == All)
+			{
+				for (auto& obj : cubes_)
+				{
+					//const Location& loc = obj.first;
+					Cube& cube = *obj.second;
+					cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
 				}
-
-				g_nRotationAngle += stepAngle;
-
-				//for (auto& obj : cubes_)
-				//{
-				//	Cube& cube = *obj.second;
-				//	if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_, cubeType_))
-				//	{
-				//		cube.rotate(g_vRotationAxis, stepAngle);
-				//	}
-				//}
-
-				if (g_nRotatingSection == All)
+			}
+			else
+			{
+				for (double x = xStart; x <= xEnd; x += subCubeSize_)
 				{
-					for (auto& obj : cubes_)
+					for (double y = yStart; y <= yEnd; y += subCubeSize_)
 					{
-						//const Location& loc = obj.first;
-						Cube& cube = *obj.second;
-						cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
-					}
-				}
-				else
-				{
-					for (double x = xStart; x <= xEnd; x += subCubeSize_)
-					{
-						for (double y = yStart; y <= yEnd; y += subCubeSize_)
+						for (double z = zStart; z <= zEnd; z += subCubeSize_)
 						{
-							for (double z = zStart; z <= zEnd; z += subCubeSize_)
-							{
-								if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
-									continue;
+							if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+								continue;
 
-								Cube& cube = *cubes_[Location{ x, y, z }];
-								cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
-							}
+							Cube& cube = *cubes_[Location{ x, y, z }];
+							cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
 						}
 					}
 				}
+			}
 
+			if (animate_)
+			{
 				pUi_->redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
-				if(step > numStepsForSnappingEffect)
+				if (step > numStepsForSnappingEffect)
 					Sleep(pUi_->getSleepTimeMilliSec());
 				else
 					Sleep(step * pUi_->getSleepTimeMilliSec() / numStepsForSnappingEffect); //Sleep time will be reduced as step -> 1

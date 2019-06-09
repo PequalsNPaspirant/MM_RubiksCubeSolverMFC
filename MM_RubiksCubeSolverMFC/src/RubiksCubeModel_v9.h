@@ -420,7 +420,7 @@ namespace mm {
 			unsigned int numRotations;
 		};
 		vector<AlgoStep> algoSteps_;
-		bool pauseAnumation_{ false };
+		bool pauseAnimation_{ false };
 
 	private:
 		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation
