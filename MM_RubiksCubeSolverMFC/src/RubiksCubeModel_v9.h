@@ -350,6 +350,7 @@ namespace mm {
 			void initializeMatrix();
 			void rotateCubeCenter(CVector3 rotationAxis, double rotationAngle);
 			void rotateLocation(CVector3 rotationAxis, double rotationAngle);
+			void rotateThickness(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v9::cubeType) const;
 			void setThickness(double x, double y, double z) { xt_ = x; yt_ = y; zt_ = z; }

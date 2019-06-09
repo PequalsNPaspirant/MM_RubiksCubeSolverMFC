@@ -304,6 +304,32 @@ namespace mm {
 		location_.rotate(rotationAxis, rotationAngle);
 	}
 
+	void RubiksCubeModel_v9::Cube::rotateThickness(CVector3 rotationAxis, double rotationAngle)
+	{
+		double thickness[3] = { xt_, yt_, zt_ };
+		Location xAxis{ 1.0, 0.0, 0.0 };
+		Location nxAxis{ -1.0, 0.0, 0.0 };
+		Location yAxis{ 0.0, 1.0, 0.0 };
+		Location nyAxis{ 0.0, -1.0, 0.0 };
+		Location zAxis{ 0.0, 0.0, 1.0 };
+		Location nzAxis{ 0.0, 0.0, -1.0 };
+		Location axes[3] = { xAxis, yAxis, zAxis };
+		for (int i = 0; i < 3; ++i)
+		{
+			axes[i].rotate(rotationAxis, rotationAngle);
+			if (axes[i] == xAxis || axes[i] == nxAxis)
+				thickness[i] = xt_;
+			else if (axes[i] == yAxis || axes[i] == nyAxis)
+				thickness[i] = yt_;
+			else if (axes[i] == zAxis || axes[i] == nzAxis)
+				thickness[i] = zt_;
+		}
+
+		xt_ = thickness[0];
+		yt_ = thickness[1];
+		zt_ = thickness[2];
+	}
+
 	void RubiksCubeModel_v9::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
 	{
 		int numRotations = fabs(rotationAngle) / 90;
@@ -628,15 +654,15 @@ namespace mm {
 		double increment[] = {0, xt/2 + yt/2, yt/2 + zt/2};
 		double x = start;
 		int xL = -extend_;
-		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : xt), xL += subCubeSize_)
+		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : subCubeSize_), xL += subCubeSize_)
 		{
 			double y = start;
 			int yL = -extend_;
-			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : xt), yL += subCubeSize_)
+			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : subCubeSize_), yL += subCubeSize_)
 			{
 				double z = start;
 				int zL = -extend_;
-				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : xt), zL += subCubeSize_)
+				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : subCubeSize_), zL += subCubeSize_)
 				{
 					Location cubeCenter(x, y, z);
 					Location location(xL, yL, zL);
@@ -707,7 +733,9 @@ namespace mm {
 						//cubes_.push_back(CreateCube(i, j, k, xt, yt, zt, loc));
 						
 						auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location, cubeCenter);
-						retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
+						retVal->setThickness(subCubeSize_, subCubeSize_, subCubeSize_);
+						if (cubeType_ == cubeType::mirrorCube)
+							retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
 						cubes_[location] = std::move(retVal);
 
 						//cubesMap[Location{i, j, k}] = cubes_.end() - 1;
@@ -2226,6 +2254,7 @@ namespace mm {
 				//const Location& loc = obj.first;
 				Cube& cube = *obj.second;
 				cube.rotateLocation(rotationAxis, rotationAngle);
+				cube.rotateThickness(rotationAxis, rotationAngle);
 				cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
 				cube.initializeMatrix();
 			}
@@ -2352,6 +2381,7 @@ namespace mm {
 					//current->rotate(rotationAxis, rotationAngle);
 					Cube& cube = *it->second;
 					cube.rotateLocation(rotationAxis, rotationAngle);
+					cube.rotateThickness(rotationAxis, rotationAngle);
 					cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
 					cube.initializeMatrix();
 				}
