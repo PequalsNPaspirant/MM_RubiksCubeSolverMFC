@@ -78,6 +78,9 @@
     <ClInclude Include="src\RubiksCubeModel_v9.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\RubiksCubeModel_v10.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MM_RubiksCubeSolverMFC.cpp">
@@ -132,6 +135,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\RubiksCubeModel_v9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RubiksCubeModel_v10.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
