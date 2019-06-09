@@ -336,7 +336,7 @@ namespace mm {
 			Cube& operator=(const Cube&) = default;
 			Cube& operator=(Cube&&) = default;
 			Cube(Color cTop, Color cBottom, Color cLeft,
-				Color cRight, Color cFront, Color cBack, const Location& location);
+				Color cRight, Color cFront, Color cBack, const Location& location, const Location& cubeCenter);
 			~Cube();
 			Color GetFaceColor(Face eFace) const;
 			void TiltUp();
@@ -347,7 +347,9 @@ namespace mm {
 			void TiltRight();
 
 			const Location& getLocation() const { return location_; }
-			void rotate(CVector3 rotationAxis, double rotationAngle);
+			void initializeMatrix();
+			void rotateCubeCenter(CVector3 rotationAxis, double rotationAngle);
+			void rotateLocation(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v9::cubeType) const;
 			void setThickness(double x, double y, double z) { xt_ = x; yt_ = y; zt_ = z; }
@@ -361,7 +363,8 @@ namespace mm {
 		private:
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
-			Location location_;
+			Location cubeCenter_; //Location of actual cube center
+			Location location_; //Location of cube in NxNxN Rubik's Cube matrix of equal sized sub-cubes
 			//int cubeSize_;
 			double xt_, yt_, zt_; //thicknesses in each direction
 			//int group_;
@@ -450,20 +453,29 @@ namespace mm {
 		};
 
 		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube> CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location);
+		//unique_ptr<Cube> CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location, const Location& cubeCenter);
 		//void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations);
 		void fixRubiksCubeFaces();
 
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
-		//unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
-		vector<unique_ptr<Cube>> cubes_;
+		unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
+		//vector<unique_ptr<Cube>> cubes_;
 		//vector< vector<Cube*> > layerF_; //Front layer //Total elements = size_ * size_
 		//vector< vector<Cube*> > layerB_; //Back layer
 		//vector< vector<Cube*> > layerL_; //Left layer
 		//vector< vector<Cube*> > layerR_; //Right layer
 		//vector< vector<Cube*> > layerU_; //Upper layer
 		//vector< vector<Cube*> > layerD_; //Down layer
+
+		//using Iterator = vector<unique_ptr<Cube>>::iterator;
+		//using Edge = vector<Iterator>; // max number of elelements = size_
+		//using Loop = Edge[4];
+		//using Layer = vector<Loop>;
+		//vector<Layer> frontLayers{ size_ }; //size = size_
+		//vector<Layer> leftLayers{ size_ };
+		//vector<Layer> upLayers{ size_ };
+
 		int size_{ 3 };
 		bool g_bRotating;
 		bool g_bFlipRotation;
@@ -472,9 +484,9 @@ namespace mm {
 		int g_nLayerIndexFrom;
 		int g_nLayerIndexTo;
 		double g_nRotationAngle;
-		//int cubeSize_{ 2 };
+		const int subCubeSize_{ 2 };
 		//double extend_{ cubeSize_ * (size_ - 1) / 2.0 };
-		double extend_;
+		int extend_{ subCubeSize_ * (size_ - 1) / 2 };
 		//double xt_{ 1.0 };
 		//double yt_{ 2.0 };
 		//double zt_{ 3.0 };

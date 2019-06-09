@@ -80,7 +80,7 @@ namespace mm {
 		ColorRGB{ 0, 0, 0 }
 	};
 
-	RubiksCubeModel_v9::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location)
+	RubiksCubeModel_v9::Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location& location, const Location& cubeCenter)
 		: faces_(FACE_COUNT)
 	{
 		faces_[Up] = cTop;
@@ -91,6 +91,7 @@ namespace mm {
 		faces_[Back] = cBack;
 
 		location_ = location;
+		cubeCenter_ = cubeCenter;
 		//cubeSize_ = cubeSize;
 		//group_ = group;
 
@@ -101,14 +102,19 @@ namespace mm {
 		//for (int i = 0; i < 16; ++i)
 		//	matrixf_[i] = mat[i];
 		//glLoadMatrixf(matrixf_);
-		glLoadIdentity();
-		result = glGetError();
-		////glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
-		glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
-		result = glGetError();
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
-		result = glGetError();
-		glPopMatrix();
+		initializeMatrix();
+	}
+
+	void RubiksCubeModel_v9::Cube::initializeMatrix()
+	{
+		//glLoadIdentity();
+		//GLenum result = glGetError();
+		//////glRotated(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		//glTranslated(cubeCenter_.x_ * scale_, cubeCenter_.y_ * scale_, cubeCenter_.z_ * scale_);
+		//result = glGetError();
+		//glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
+		//result = glGetError();
+		//glPopMatrix();
 
 		constexpr const int size = 4;
 		for (int Row = 0; Row < 4; Row++)
@@ -118,9 +124,9 @@ namespace mm {
 				else
 					matrix_[Row * size + Column] = 0.0;
 
-		matrix_[12] = location_.x_ * scale_;
-		matrix_[13] = location_.y_ * scale_;
-		matrix_[14] = location_.z_ * scale_;
+		matrix_[12] = cubeCenter_.x_ * scale_;
+		matrix_[13] = cubeCenter_.y_ * scale_;
+		matrix_[14] = cubeCenter_.z_ * scale_;
 	}
 
 	RubiksCubeModel_v9::Cube::~Cube(void)
@@ -256,12 +262,14 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v9::Cube::rotate(CVector3 rotationAxis, double rotationAngle)
+	void RubiksCubeModel_v9::Cube::rotateCubeCenter(CVector3 rotationAxis, double rotationAngle)
 	{
 		if (fabs(rotationAngle) < 0.00001)
 			return;
 
-		location_.rotate(rotationAxis, rotationAngle);
+		cubeCenter_.rotate(rotationAxis, rotationAngle);
+
+		//location_.rotate(rotationAxis, rotationAngle);
 
 		//vector<vector<double>> matrix = getRotationMatrix(rotationAxis, rotationAngle);
 		double mat[16];
@@ -282,10 +290,18 @@ namespace mm {
 		//glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
 		result = glGetError();
-		matrixf_[12] = location_.x_ * scale_;
-		matrixf_[13] = location_.y_ * scale_;
-		matrixf_[14] = location_.z_ * scale_;
+		matrixf_[12] = cubeCenter_.x_ * scale_;
+		matrixf_[13] = cubeCenter_.y_ * scale_;
+		matrixf_[14] = cubeCenter_.z_ * scale_;
 		glPopMatrix();
+	}
+
+	void RubiksCubeModel_v9::Cube::rotateLocation(CVector3 rotationAxis, double rotationAngle)
+	{
+		if (fabs(rotationAngle) < 0.00001)
+			return;
+
+		location_.rotate(rotationAxis, rotationAngle);
 	}
 
 	void RubiksCubeModel_v9::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
@@ -450,19 +466,19 @@ namespace mm {
 				break;
 			}
 
-			if (type == cubeType::rubiksCube)
+			//if (type == cubeType::rubiksCube)
 			{
 				if(retVal)
 					return true;
 			}
-			else if (type == cubeType::mirrorCube)
-			{
-				bool xMatch = (*xcomp)(location_.x_);
-				bool yMatch = (*ycomp)(location_.y_);
-				bool zMatch = (*zcomp)(location_.z_);
-				if (xMatch && yMatch && zMatch)
-					return true;
-			}
+			//else if (type == cubeType::mirrorCube)
+			//{
+			//	bool xMatch = (*xcomp)(location_.x_);
+			//	bool yMatch = (*ycomp)(location_.y_);
+			//	bool zMatch = (*zcomp)(location_.z_);
+			//	if (xMatch && yMatch && zMatch)
+			//		return true;
+			//}
 		}
 		
 		return retVal;
@@ -549,8 +565,8 @@ namespace mm {
 	{
 		for (auto& obj : copy.cubes_)
 		{
-			//cubes_[obj.first] = make_unique<Cube>(*obj.second.get());
-			cubes_.push_back(make_unique<Cube>(*obj));
+			cubes_[obj.first] = make_unique<Cube>(*obj.second.get());
+			//cubes_.push_back(make_unique<Cube>(*obj));
 		}
 	}
 
@@ -583,7 +599,7 @@ namespace mm {
 	void RubiksCubeModel_v9::ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui)
 	{
 		size_ = size;
-		extend_ = xt * (size_ - 1) / 2.0;
+		extend_ = subCubeSize_ * (size_ - 1) / 2; //This is extend of NxNxN matrix in one direction. Assumption: all subCubes are perfect cubes of const size 2.
 		animate_ = animate;
 		pUi_ = ui;
 
@@ -608,25 +624,152 @@ namespace mm {
 			start = -(xt / 2 + yt / 2);
 
 		//cube widths are 1, 2, and 3
+		//unordered_map<Location, Iterator, Hasher> cubesMap;
 		double increment[] = {0, xt/2 + yt/2, yt/2 + zt/2};
 		double x = start;
-		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : xt))
+		int xL = -extend_;
+		for (int i = 0; i < size_; ++i, x += (cubeType_ == cubeType::mirrorCube ? increment[i] : xt), xL += subCubeSize_)
 		{
 			double y = start;
-			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : xt))
+			int yL = -extend_;
+			for (int j = 0; j < size_; ++j, y += (cubeType_ == cubeType::mirrorCube ? increment[j] : xt), yL += subCubeSize_)
 			{
 				double z = start;
-				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : xt))
+				int zL = -extend_;
+				for (int k = 0; k < size_; ++k, z += (cubeType_ == cubeType::mirrorCube ? increment[k] : xt), zL += subCubeSize_)
 				{
-					Location loc(x, y, z);
+					Location cubeCenter(x, y, z);
+					Location location(xL, yL, zL);
 
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_.push_back(CreateCube(i, j, k, xt, yt, zt, loc));
+					{
+						Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
+						double xtCurrent = yt;
+						double ytCurrent = yt;
+						double ztCurrent = yt;
+
+						if (i == 0)
+						{
+							left = Orange;
+							//right = Black;
+							xtCurrent = xt;
+						}
+						if (i == size_ - 1)
+						{
+							//left = Black;
+							right = Red;
+							xtCurrent = zt;
+						}
+						//else
+						//{
+						//	left = Black;
+						//	right = Black;
+						//}
+
+						if (j == 0)
+						{
+							bottom = White;
+							//top = Black;
+							ytCurrent = xt;
+						}
+						if (j == size_ - 1)
+						{
+							//bottom = Black;
+							top = Yellow;
+							ytCurrent = zt;
+						}
+						//else
+						//{
+						//	bottom = Black;
+						//	top = Black;
+						//}
+
+						if (k == 0)
+						{
+							back = Green;
+							//front = Black;
+							ztCurrent = xt;
+						}
+						if (k == size_ - 1)
+						{
+							//back = Black;
+							front = Blue;
+							ztCurrent = zt;
+						}
+						//else
+						//{
+						//	back = Black;
+						//	front = Black;
+						//}
+
+						//cubes_.push_back(CreateCube(i, j, k, xt, yt, zt, loc));
+						
+						auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location, cubeCenter);
+						retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
+						cubes_[location] = std::move(retVal);
+
+						//cubesMap[Location{i, j, k}] = cubes_.end() - 1;
+					}
 				}
 			}
 		}
+
+		/*
+		Make sure Cube is positioned in right way
+
+		// Z-axis : Back -> Front // green  -> blue
+		// X-axis : Left -> Right // orange -> red
+		// Y-axis : Down -> Up    // white  -> yellow
+
+		yellow
+		    Y
+		    |
+		    . --> X red
+		   /
+		  Z
+		blue
+
+		*/
+
+		//Prepare front layers - which is along -Z Axis
+		//for (int layerIndex = size_ - 1; layerIndex >= 0; --layerIndex) //number of layers
+		//{
+		//	if (layerIndex == 0 || layerIndex == size_ - 1) //The layers at the two ends have multiple Loops
+		//	{
+
+		//	}
+		//	else
+		//	{
+		//		Edge edges[4];
+		//		int x = 0, y = 0;
+
+		//		y = 0; //up
+		//		for (x = 0; x < size_; ++x) 
+		//			edges[0].push_back(cubesMap[Location{ x, y, layerIndex }]);
+		//		x = size_ - 1; //right
+		//		for (y = size_ - 1; x > 0; --x)
+		//			edges[1].push_back(cubesMap[Location{ x, y, layerIndex }]);
+		//		y = size_ - 1; //down
+		//		for (x = 0; x < size_; ++x)
+		//			edges[2].push_back(cubesMap[Location{ x, y, layerIndex }]);
+		//		for (y = 0; x < size_; ++x) //left: x = 0
+		//			edges[3].push_back(cubesMap[Location{ x, y, layerIndex }]);
+		//	}
+		//}
+		//Prepare left layers - which is along +X Axis
+
+		//Prepare up layers - which is along -Y Axis
+
+		//using Iterator = vector<unique_ptr<Cube>>::iterator;
+		//using Edge = vector<Iterator>; // max number of elelements = size_
+		//using Loop = Edge[4];
+		//using Layer = vector<Loop>;
+		//vector<Layer> frontLayers{ size_ }; //size = size_
+		//vector<Layer> leftLayers{ size_ };
+		//vector<Layer> topLayers{ size_ };
+
 
 		status_ = status::solved;
 
@@ -763,8 +906,8 @@ namespace mm {
 		for (auto& obj : cubes_)
 		{
 			//const Location& loc = obj.first;
-			//const Cube& cube = *obj.second.get();
-			Cube& cube = *obj;
+			const Cube& cube = *obj.second.get();
+			//Cube& cube = *obj;
 
 			//glPushMatrix();
 
@@ -868,19 +1011,19 @@ namespace mm {
 		//glLoadMatrixd(pCube.matrix_);
 		result = glGetError();
 
-		//Color top = pCube.GetFaceColor(Up);
-		//Color bottom = pCube.GetFaceColor(Down);
-		//Color left = pCube.GetFaceColor(Left);
-		//Color right = pCube.GetFaceColor(Right);
-		//Color back = pCube.GetFaceColor(Back);
-		//Color front = pCube.GetFaceColor(Front);
+		Color top = pCube.GetFaceColor(Up);
+		Color bottom = pCube.GetFaceColor(Down);
+		Color left = pCube.GetFaceColor(Left);
+		Color right = pCube.GetFaceColor(Right);
+		Color back = pCube.GetFaceColor(Back);
+		Color front = pCube.GetFaceColor(Front);
 
-		Color top = Color::Yellow;
-		Color bottom = Color::White;
-		Color left = Color::Orange;
-		Color right = Color::Red;
-		Color back = Color::Green;
-		Color front = Color::Blue;
+		//Color top = Color::Yellow;
+		//Color bottom = Color::White;
+		//Color left = Color::Orange;
+		//Color right = Color::Red;
+		//Color back = Color::Green;
+		//Color front = Color::Blue;
 
 		glEnable(GL_TEXTURE_2D);
 
@@ -1143,71 +1286,71 @@ namespace mm {
 		glPopMatrix();
 	}
 
-	unique_ptr<RubiksCubeModel_v9::Cube> RubiksCubeModel_v9::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
-	{
-		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
-		double xtCurrent = yt;
-		double ytCurrent = yt;
-		double ztCurrent = yt;
+	//unique_ptr<RubiksCubeModel_v9::Cube> RubiksCubeModel_v9::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
+	//{
+	//	Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
+	//	double xtCurrent = yt;
+	//	double ytCurrent = yt;
+	//	double ztCurrent = yt;
 
-		if (x == 0)
-		{
-			left = Orange;
-			//right = Black;
-			xtCurrent = xt;
-		}
-		if (x == size_ - 1)
-		{
-			//left = Black;
-			right = Red;
-			xtCurrent = zt;
-		}
-		//else
-		//{
-		//	left = Black;
-		//	right = Black;
-		//}
+	//	if (x == 0)
+	//	{
+	//		left = Orange;
+	//		//right = Black;
+	//		xtCurrent = xt;
+	//	}
+	//	if (x == size_ - 1)
+	//	{
+	//		//left = Black;
+	//		right = Red;
+	//		xtCurrent = zt;
+	//	}
+	//	//else
+	//	//{
+	//	//	left = Black;
+	//	//	right = Black;
+	//	//}
 
-		if (y == 0)
-		{
-			bottom = White;
-			//top = Black;
-			ytCurrent = xt;
-		}
-		if (y == size_ - 1)
-		{
-			//bottom = Black;
-			top = Yellow;
-			ytCurrent = zt;
-		}
-		//else
-		//{
-		//	bottom = Black;
-		//	top = Black;
-		//}
+	//	if (y == 0)
+	//	{
+	//		bottom = White;
+	//		//top = Black;
+	//		ytCurrent = xt;
+	//	}
+	//	if (y == size_ - 1)
+	//	{
+	//		//bottom = Black;
+	//		top = Yellow;
+	//		ytCurrent = zt;
+	//	}
+	//	//else
+	//	//{
+	//	//	bottom = Black;
+	//	//	top = Black;
+	//	//}
 
-		if (z == 0)
-		{
-			back = Green;
-			//front = Black;
-			ztCurrent = xt;
-		}
-		if (z == size_ - 1)
-		{
-			//back = Black;
-			front = Blue;
-			ztCurrent = zt;
-		}
-		//else
-		//{
-		//	back = Black;
-		//	front = Black;
-		//}
+	//	if (z == 0)
+	//	{
+	//		back = Green;
+	//		//front = Black;
+	//		ztCurrent = xt;
+	//	}
+	//	if (z == size_ - 1)
+	//	{
+	//		//back = Black;
+	//		front = Blue;
+	//		ztCurrent = zt;
+	//	}
+	//	//else
+	//	//{
+	//	//	back = Black;
+	//	//	front = Black;
+	//	//}
 
-		auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location);
-		retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
-		return std::move(retVal);
-	}
+	//	auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location);
+	//	retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
+	//	return std::move(retVal);
+	//}
 
 	//const RubiksCubeModel_v9::Cube& RubiksCubeModel_v9::GetCube(double x, double y, double z)
 	//{
@@ -1219,6 +1362,41 @@ namespace mm {
 
 	RubiksCubeModel_v9::Cube& RubiksCubeModel_v9::GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3)
 	{
+		/*
+		Face layer[3] = { layer1, layer2, layer3 };
+		int layerIndex[3] = { layerIndex1, layerIndex2, layerIndex3 };
+		int x = -1, y = -1, z = -1;
+		for (int i = 0; i < 3; ++i)
+		{
+			Face currentFace = layer[i];
+			int currentLayer = layerIndex[i] - 1; //modify range to [0, cubeSize_)
+			int maxLayerIndex = size_ - 1;
+			switch (currentFace)
+			{
+			case Left:
+				x = currentLayer;
+				break;
+			case Right:
+				x = maxLayerIndex - currentLayer;
+				break;
+			case Down:
+				y = currentLayer;
+				break;
+			case Up:
+				y = maxLayerIndex - currentLayer;
+				break;
+			case Back:
+				z = currentLayer;
+				break;
+			case Front:
+				z = maxLayerIndex - currentLayer;
+				break;
+			}
+		}
+		return *cubes_[Location(x, y, z)];
+		*/
+		//////////////////////////////////////////////////////////////////////////////////////////
+		/*
 		RubiksCubeSolverUtils::RunTimeAssert(layer1 != layer2 && layer2 != layer3);
 
 		if (cubeType_ == cubeType::mirrorCube)
@@ -1288,10 +1466,10 @@ namespace mm {
 
 			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
 		}
-		else
+		else*/
 		{
-			double xt;
-			cubes_[0]->getThickness(xt, xt, xt);
+			//double xt;
+			//cubes_[0]->getThickness(xt, xt, xt);
 			double x, y, z;
 			//double extend_ = (size_ - 1) / 2.0;
 			for (int i = 0; i < 3; ++i)
@@ -1317,22 +1495,22 @@ namespace mm {
 				switch (layer)
 				{
 				case Left:
-					x = -extend_ + xt * index;
+					x = -extend_ + subCubeSize_ * index;
 					break;
 				case Right:
-					x = extend_ - xt * index;
+					x = extend_ - subCubeSize_ * index;
 					break;
 				case Down:
-					y = -extend_ + xt * index;
+					y = -extend_ + subCubeSize_ * index;
 					break;
 				case Up:
-					y = extend_ - xt * index;
+					y = extend_ - subCubeSize_ * index;
 					break;
 				case Back:
-					z = -extend_ + xt * index;
+					z = -extend_ + subCubeSize_ * index;
 					break;
 				case Front:
-					z = extend_ - xt * index;
+					z = extend_ - subCubeSize_ * index;
 					break;
 				}
 			}
@@ -1340,9 +1518,11 @@ namespace mm {
 
 			for (auto& obj : cubes_)
 			{
-				Cube& cube = *obj;
+				Cube& cube = *obj.second;
 				const Location& loc = cube.getLocation();
-				if (fabs(x - loc.x_) < 0 && fabs(y - loc.y_) < 0 && fabs(z - loc.z_) < 0)
+				//if (fabs(x - loc.x_) < 0 && fabs(y - loc.y_) < 0 && fabs(z - loc.z_) < 0)
+				//	return cube;
+				if (x == int(loc.x_) && y == int(loc.y_) && z == int(loc.z_))
 					return cube;
 			}
 
@@ -1369,6 +1549,54 @@ namespace mm {
 
 	bool RubiksCubeModel_v9::IsFaceSolved(RubiksCubeModel_v9::Face face)
 	{
+		/*
+		int x = 0, y = 0, z = 0;
+		if (face == Left || face == Right)
+		{
+			x = (face == Left) ? 0 : size_ - 1;
+			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
+
+			for (int j = 0; j < size_; j++)
+			{
+				for (int k = 0; k < size_; k++)
+				{
+					if (cubes_[Location(x, j, k)]->GetFaceColor(face) != color)
+						return false;
+				}
+			}
+		}
+		else if (face == Up || face == Down)
+		{
+			y = (face == Down) ? 0 : size_ - 1;
+			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
+
+			for (int i = 0; i < size_; i++)
+			{
+				for (int k = 0; k < size_; k++)
+				{
+					if (cubes_[Location(i, y, k)]->GetFaceColor(face) != color)
+						return false;
+				}
+			}
+		}
+		else if (face == Front || face == Back)
+		{
+			z = (face == Back) ? 0 : size_ - 1;
+			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
+
+			for (int i = 0; i < size_; i++)
+			{
+				for (int j = 0; j < size_; j++)
+				{
+					if (cubes_[Location(i, j, z)]->GetFaceColor(face) != color)
+						return false;
+				}
+			}
+		}
+
+		return true;
+		*/
+		/*
 		fptr xcomp = defaultFun;
 		fptr ycomp = defaultFun;
 		fptr zcomp = defaultFun;
@@ -1409,7 +1637,7 @@ namespace mm {
 		Color currentColor = Color::Black;
 		for(const auto& obj : cubes_)
 		{
-			Cube& cube = *obj;
+			Cube& cube = *obj.second;
 			const Location& loc = cube.getLocation();
 			bool xMatch = (*xcomp)(loc.x_);
 			bool yMatch = (*ycomp)(loc.y_);
@@ -1424,21 +1652,21 @@ namespace mm {
 		}
 
 		return true;
-
-		/*
+		*/
+		
 		//double extend_ = (size_ - 1) / 2.0;
 
 		if (face == Left || face == Right)
 		{
-			double iStart = (face == Left) ? -extend_ : extend_;
+			int iStart = (face == Left) ? -extend_ : extend_;
 
 			Color color = cubes_[Location(iStart, -extend_, -extend_)]->GetFaceColor(face);
 
-			double jStart = -extend_;
-			for (int j = 0; j < size_; j++, jStart += cubeSize_)
+			int jStart = -extend_;
+			for (int j = 0; j < size_; j++, jStart += subCubeSize_)
 			{
-				double kStart = -extend_;
-				for (int k = 0; k < size_; k++, kStart += cubeSize_)
+				int kStart = -extend_;
+				for (int k = 0; k < size_; k++, kStart += subCubeSize_)
 				{
 					if (cubes_[Location(iStart, jStart, kStart)]->GetFaceColor(face) != color)
 						return false;
@@ -1447,15 +1675,15 @@ namespace mm {
 		}
 		else if (face == Up || face == Down)
 		{
-			double jStart = (face == Down) ? -extend_ : extend_;
+			int jStart = (face == Down) ? -extend_ : extend_;
 
 			Color color = cubes_[Location(-extend_, jStart, -extend_)]->GetFaceColor(face);
 
-			double iStart = -extend_;
-			for (int i = 0; i < size_; i++, iStart += cubeSize_)
+			int iStart = -extend_;
+			for (int i = 0; i < size_; i++, iStart += subCubeSize_)
 			{
-				double kStart = -extend_;
-				for (int k = 0; k < size_; k++, kStart += cubeSize_)
+				int kStart = -extend_;
+				for (int k = 0; k < size_; k++, kStart += subCubeSize_)
 				{
 					if (cubes_[Location(iStart, jStart, kStart)]->GetFaceColor(face) != color)
 						return false;
@@ -1464,22 +1692,22 @@ namespace mm {
 		}
 		else if (face == Front || face == Back)
 		{
-			double kStart = (face == Back) ? -extend_ : extend_;
+			int kStart = (face == Back) ? -extend_ : extend_;
 
 			Color color = cubes_[Location(-extend_, -extend_, kStart)]->GetFaceColor(face);
 
-			double iStart = -extend_;
-			for (int i = 0; i < size_; i++, iStart += cubeSize_)
+			int iStart = -extend_;
+			for (int i = 0; i < size_; i++, iStart += subCubeSize_)
 			{
-				double jStart = -extend_;
-				for (int j = 0; j < size_; j++, jStart += cubeSize_)
+				int jStart = -extend_;
+				for (int j = 0; j < size_; j++, jStart += subCubeSize_)
 				{
 					if (cubes_[Location(iStart, jStart, kStart)]->GetFaceColor(face) != color)
 						return false;
 				}
 			}
 		}
-		*/
+		
 
 		return true;
 	}
@@ -1780,6 +2008,10 @@ namespace mm {
 		*/
 
 		//int angle = 90;
+		int xStart = -extend_, xEnd = extend_, yStart = -extend_, yEnd = extend_, zStart = -extend_, zEnd = extend_;
+		int layerStart = layerIndexFrom - 1;
+		int layerEnd = layerIndexTo - 1;
+		int maxLayers = size_ - 1;
 		double targetAngle;
 		switch (face)
 		{
@@ -1787,6 +2019,8 @@ namespace mm {
 			g_vRotationAxis = CVector3(0, 0, 1);
 			g_nRotatingSection = Front;
 			targetAngle = -90;
+			zStart = -extend_ + (maxLayers - layerStart) * subCubeSize_;
+			zEnd = -extend_ + (maxLayers - layerEnd) * subCubeSize_;
 			break;
 
 		case 'Z':
@@ -1799,12 +2033,16 @@ namespace mm {
 			g_vRotationAxis = CVector3(0, 0, 1);
 			g_nRotatingSection = Back;
 			targetAngle = 90;
+			zStart = -extend_ + layerStart * subCubeSize_;
+			zEnd = -extend_ + layerEnd * subCubeSize_;
 			break;
 
 		case 'L':
 			g_vRotationAxis = CVector3(1, 0, 0);
 			g_nRotatingSection = Left;
 			targetAngle = 90;
+			xStart = -extend_ + layerStart * subCubeSize_;
+			xEnd = -extend_ + layerEnd * subCubeSize_;
 			break;
 
 		case 'X':
@@ -1817,12 +2055,16 @@ namespace mm {
 			g_vRotationAxis = CVector3(1, 0, 0);
 			g_nRotatingSection = Right;
 			targetAngle = -90;
+			xStart = -extend_ + (maxLayers - layerStart) * subCubeSize_;
+			xEnd = -extend_ + (maxLayers - layerEnd) * subCubeSize_;
 			break;
 
 		case 'U':
 			g_vRotationAxis = CVector3(0, 1, 0);
 			g_nRotatingSection = Up;
 			targetAngle = -90;
+			yStart = -extend_ + (maxLayers - layerStart) * subCubeSize_;
+			yEnd = -extend_ + (maxLayers - layerEnd) * subCubeSize_;
 			break;
 
 		case 'Y':
@@ -1835,6 +2077,8 @@ namespace mm {
 			g_vRotationAxis = CVector3(0, 1, 0);
 			g_nRotatingSection = Down;
 			targetAngle = 90;
+			yStart = -extend_ + layerStart * subCubeSize_;
+			yEnd = -extend_ + layerEnd * subCubeSize_;
 			break;
 
 		default:
@@ -1876,12 +2120,39 @@ namespace mm {
 
 				g_nRotationAngle += stepAngle;
 
-				for (auto& obj : cubes_)
+				//for (auto& obj : cubes_)
+				//{
+				//	Cube& cube = *obj.second;
+				//	if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_, cubeType_))
+				//	{
+				//		cube.rotate(g_vRotationAxis, stepAngle);
+				//	}
+				//}
+
+				if (g_nRotatingSection == All)
 				{
-					Cube& cube = *obj;
-					if (cube.belongsTo(g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, extend_, cubeType_))
+					for (auto& obj : cubes_)
 					{
-						cube.rotate(g_vRotationAxis, stepAngle);
+						//const Location& loc = obj.first;
+						Cube& cube = *obj.second;
+						cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
+					}
+				}
+				else
+				{
+					for (double x = xStart; x <= xEnd; x += subCubeSize_)
+					{
+						for (double y = yStart; y <= yEnd; y += subCubeSize_)
+						{
+							for (double z = zStart; z <= zEnd; z += subCubeSize_)
+							{
+								if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+									continue;
+
+								Cube& cube = *cubes_[Location{ x, y, z }];
+								cube.rotateCubeCenter(g_vRotationAxis, stepAngle);
+							}
+						}
 					}
 				}
 
@@ -1903,6 +2174,29 @@ namespace mm {
 		//Fix cube position and Reset all parameters
 		g_nRotationAngle = targetAngle;
 		fixRubiksCubeFaces();
+		//for (int x = xStart; x <= xEnd; ++x)
+		//{
+		//	for (int y = yStart; y <= yEnd; ++y)
+		//	{
+		//		for (int z = zStart; z <= zEnd; ++z)
+		//		{
+		//			Cube& cube = *cubes_[Location{ x, y, z }];
+		//			cube.fixRubiksCubeFaces(g_vRotationAxis, g_nRotationAngle);
+		//			cube.initializeMatrix();
+		//		}
+		//	}
+		//}
+
+		//int rotations = numRotations;
+		//if (isPrime)
+		//	rotations = 4 - rotations;
+
+		//for (int layerIndex = layerIndexFrom - 1; layerIndex < layerIndexTo; ++layerIndex)
+		//{
+		//	//Rotate the layer
+		//	compilation error
+		//}
+
 		if (animate_)
 		{
 			pUi_->redrawWindow();
@@ -1924,55 +2218,58 @@ namespace mm {
 
 	void RubiksCubeModel_v9::fixRubiksCubeFaces(CVector3 rotationAxis, RubiksCubeModel_v9::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
 	{
+		
 		if (rotatingSection == RubiksCubeModel_v9::Face::All)
 		{
 			for (auto& obj : cubes_)
 			{
 				//const Location& loc = obj.first;
-				Cube& cube = *obj;
+				Cube& cube = *obj.second;
+				cube.rotateLocation(rotationAxis, rotationAngle);
 				cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
+				cube.initializeMatrix();
 			}
 
-			//for (auto& obj : cubes_)
-			//{
-			//	const Location& loc = obj.first;
-			//	unique_ptr<Cube>& current = obj.second;
+			for (auto& obj : cubes_)
+			{
+				const Location& loc = obj.first;
+				unique_ptr<Cube>& current = obj.second;
 
-			//	while (loc != current->getLocation())
-			//	{
-			//		unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
-			//		cubes_[current->getLocation()] = std::move(current);
-			//		current = std::move(temp);
-			//	}
-			//}
+				while (loc != current->getLocation())
+				{
+					unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+					cubes_[current->getLocation()] = std::move(current);
+					current = std::move(temp);
+				}
+			}
 
 			return;
 		}
-		else
-		{
-			for (auto& obj : cubes_)
-			{
-				Cube& cube = *obj;
-				if (cube.belongsTo(rotatingSection, layerIndexFrom, layerIndexTo, extend_, cubeType_))
-					cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
-			}
-		}
+		//else
+		//{
+		//	for (auto& obj : cubes_)
+		//	{
+		//		Cube& cube = *obj;
+		//		if (cube.belongsTo(rotatingSection, layerIndexFrom, layerIndexTo, extend_, cubeType_))
+		//			cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
+		//	}
+		//}
 
-		return;
-
-
+		//return;
 
 
 
 
-		double xt;
-		cubes_[0]->getThickness(xt, xt, xt);
+
+
+		//double xt;
+		//cubes_[0]->getThickness(xt, xt, xt);
 
 		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
 		{
 			//double extend_ = (size_ - 1) / 2.0;
 			static int diffData[6] = { -1, 1, 1, -1, -1, 1 };
-			double diff = xt * diffData[rotatingSection] * (layerIndex - 1);
+			double diff = subCubeSize_ * diffData[rotatingSection] * (layerIndex - 1);
 			double x, y, z;
 			double* pi = nullptr;
 			double* pj = nullptr;
@@ -2028,56 +2325,60 @@ namespace mm {
 				RubiksCubeSolverUtils::RunTimeAssert(false, "Unrecognized face");
 			}
 
-			for (auto& obj : cubes_)
+			//for (auto& obj : cubes_)
+			//{
+			//	Cube& cube = *obj;
+			//	const Location& loc = cube.getLocation();
+			//	bool xMatch = (*xcomp)(loc.x_);
+			//	bool yMatch = (*ycomp)(loc.y_);
+			//	bool zMatch = (*zcomp)(loc.z_);
+			//	if (xMatch && yMatch && zMatch)
+			//		cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
+			//}
+
+			*pi = -extend_;
+			for (int i = 0; i < size_; ++i, *pi += subCubeSize_)
 			{
-				Cube& cube = *obj;
-				const Location& loc = cube.getLocation();
-				bool xMatch = (*xcomp)(loc.x_);
-				bool yMatch = (*ycomp)(loc.y_);
-				bool zMatch = (*zcomp)(loc.z_);
-				if (xMatch && yMatch && zMatch)
+				*pj = -extend_;
+				for (int j = 0; j < size_; ++j, *pj += subCubeSize_)
+				{
+					if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+						continue;
+
+					auto it = cubes_.find(Location(x, y, z));
+					RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+					//const Location& loc = it->first;
+					//unique_ptr<Cube>& current = it->second;
+					//current->rotate(rotationAxis, rotationAngle);
+					Cube& cube = *it->second;
+					cube.rotateLocation(rotationAxis, rotationAngle);
 					cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
+					cube.initializeMatrix();
+				}
 			}
 
-			//*pi = -extend_;
-			//for (int i = 0; i < size_; ++i, *pi += cubeSize_)
-			//{
-			//	*pj = -extend_;
-			//	for (int j = 0; j < size_; ++j, *pj += cubeSize_)
-			//	{
-			//		if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
-			//			continue;
+			*pi = -extend_;
+			for (int i = 0; i < size_; ++i, *pi += subCubeSize_)
+			{
+				*pj = -extend_;
+				for (int j = 0; j < size_; ++j, *pj += subCubeSize_)
+				{
+					if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
+						continue;
 
-			//		auto it = cubes_.find(Location(x, y, z));
-			//		RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
-			//		//const Location& loc = it->first;
-			//		unique_ptr<Cube>& current = it->second;
-			//		current->rotate(rotationAxis, rotationAngle);
-			//	}
-			//}
+					auto it = cubes_.find(Location(x, y, z));
+					RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+					const Location& loc = it->first;
+					unique_ptr<Cube>& current = it->second;
 
-			//*pi = -extend_;
-			//for (int i = 0; i < size_; ++i, *pi += cubeSize_)
-			//{
-			//	*pj = -extend_;
-			//	for (int j = 0; j < size_; ++j, *pj += cubeSize_)
-			//	{
-			//		if (fabs(fabs(x) - extend_) > 0.0001 && fabs(fabs(y) - extend_) > 0.0001 && fabs(fabs(z) - extend_) > 0.0001)
-			//			continue;
-
-			//		auto it = cubes_.find(Location(x, y, z));
-			//		RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
-			//		const Location& loc = it->first;
-			//		unique_ptr<Cube>& current = it->second;
-
-			//		while (loc != current->getLocation())
-			//		{
-			//			unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
-			//			cubes_[current->getLocation()] = std::move(current);
-			//			current = std::move(temp);
-			//		}
-			//	}
-			//}
+					while (loc != current->getLocation())
+					{
+						unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+						cubes_[current->getLocation()] = std::move(current);
+						current = std::move(temp);
+					}
+				}
+			}
 		}
 	}
 
