@@ -38,15 +38,24 @@ using namespace std;
 #include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
-namespace mm {
+/*
+Make sure Cube is positioned in right way
 
-	namespace {
-		bool lessThanZero(double a) { return a < -0.0001; }
-		bool greaterThanZero(double a) { return a > 0.0001; }
-		bool equalToZero(double a) { return (fabs(a) < 0.0001); }
-		bool defaultFun(double a) { return true; }
-		typedef bool(*fptr)(double a);
-	}
+// Z-axis : Back -> Front // green  -> blue
+// X-axis : Left -> Right // orange -> red
+// Y-axis : Down -> Up    // white  -> yellow
+
+    yellow Up
+      Y
+      |
+      . --> X red Right
+     /
+    Z
+  blue Front
+
+*/
+
+namespace mm {
 
 	//Factory function definition
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v10(int size)
@@ -92,16 +101,7 @@ namespace mm {
 
 		location_ = location;
 		cubeCenter_ = cubeCenter;
-		//cubeSize_ = cubeSize;
-		//group_ = group;
 
-		GLenum result = 0;
-		glPushMatrix();
-		//result = glGetError();
-		//float mat[] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
-		//for (int i = 0; i < 16; ++i)
-		//	matrixf_[i] = mat[i];
-		//glLoadMatrixf(matrixf_);
 		initializeMatrix();
 	}
 
@@ -137,23 +137,6 @@ namespace mm {
 	{
 		return faces_[eFace];
 	}
-
-	/*
-	Make sure Cube is positioned in right way
-
-	// Z-axis : Back -> Front // green  -> blue
-	// X-axis : Left -> Right // orange -> red
-	// Y-axis : Down -> Up    // white  -> yellow
-
-		  yellow
-			Y
-			|
-			. --> X red
-		  /
-		Z
-	 blue
-
-	*/
 
 	namespace {
 		vector<vector<double>> getRotationMatrix(const CVector3& rotationAxis, double rotationAngle)
@@ -268,7 +251,6 @@ namespace mm {
 			return;
 
 		cubeCenter_.rotate(rotationAxis, rotationAngle);
-
 		//location_.rotate(rotationAxis, rotationAngle);
 
 		//vector<vector<double>> matrix = getRotationMatrix(rotationAxis, rotationAngle);
@@ -279,7 +261,6 @@ namespace mm {
 		//matrix_[12] = location_.x_ * scale_;
 		//matrix_[13] = location_.y_ * scale_;
 		//matrix_[14] = location_.z_ * scale_;
-
 
 		GLenum result = 0;
 		glPushMatrix();
@@ -425,152 +406,17 @@ namespace mm {
 		faces_[Right] = temp1;
 	}
 
-	bool RubiksCubeModel_v10::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend, RubiksCubeModel_v10::cubeType type) const
-	{
-		if (rotatingSection == All)
-			return true;
-
-		bool retVal = false;
-		static int diffData[6] = { -1, 1, 1, -1, -1, 1 };
-		double x, y, z;
-		fptr xcomp = defaultFun;
-		fptr ycomp = defaultFun;
-		fptr zcomp = defaultFun;
-		fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
-
-		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
-		{
-			RubiksCubeSolverUtils::RunTimeAssert(layerIndex > 0);
-
-			//double extend_ = (size - 1) / 2.0;
-			/*
-			Up = 0,
-			Down = 1,
-			Left = 2,
-			Right = 3,
-			Front = 4,
-			Back = 5,
-			*/
-			
-			double diff = xt_ * diffData[rotatingSection] * (layerIndex - 1);
-			x = y = z = -1;
-
-			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
-			int maxLayerIndex = 3 - 1;
-			
-			switch (rotatingSection)
-			{
-			case Left:
-				x = -extend + diff;
-				retVal = (fabs(x - location_.x_) < 0.0001);
-				xcomp = fun[currentLayer];
-				break;
-			case Right:
-				x = extend + diff;
-				retVal = (fabs(x - location_.x_) < 0.0001);
-				xcomp = fun[maxLayerIndex - currentLayer];
-				break;
-			case Down:
-				y = -extend + diff;
-				retVal = (fabs(y - location_.y_) < 0.0001);
-				ycomp = fun[currentLayer];
-				break;
-			case Up:
-				y = extend + diff;
-				retVal = (fabs(y - location_.y_) < 0.0001);
-				ycomp = fun[maxLayerIndex - currentLayer];
-				break;
-			case Back:
-				z = -extend + diff;
-				retVal = (fabs(z - location_.z_) < 0.0001);
-				zcomp = fun[currentLayer];
-				break;
-			case Front:
-				z = extend + diff;
-				retVal = (fabs(z - location_.z_) < 0.0001);
-				zcomp = fun[maxLayerIndex - currentLayer];
-				break;
-			}
-
-			//if (type == cubeType::rubiksCube)
-			{
-				if(retVal)
-					return true;
-			}
-			//else if (type == cubeType::mirrorCube)
-			//{
-			//	bool xMatch = (*xcomp)(location_.x_);
-			//	bool yMatch = (*ycomp)(location_.y_);
-			//	bool zMatch = (*zcomp)(location_.z_);
-			//	if (xMatch && yMatch && zMatch)
-			//		return true;
-			//}
-		}
-		
-		return retVal;
-	}
-
 	//==================== RubiksCubeModel_v10 =========================
 
 	RubiksCubeModel_v10::RubiksCubeModel_v10(int size, double xt, double yt, double zt)
-		//: //cubes_(vector< vector< vector<Cube> > > (size, vector< vector<Cube> >(size, vector<Cube>(size)) ) ),
-		//layerF_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//layerB_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//layerL_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//layerR_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//layerU_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//layerD_(vector< vector<Cube*> >(size, vector<Cube*>(size, nullptr))),
-		//cubes_(27),
-		//size_(size),
-		//cubeSize_(2),
-		//extend_(cubeSize_ * (size - 1) / 2.0),
-		//g_bRotating(false),
-		//g_bFlipRotation(false),
-		//g_vRotationAxis(0, 0, 0),
-		//g_nRotatingSection(None),
-		//g_nRotationAngle(0)
-		//scramblingSteps_(0),
-		//scramblingAlgo_(""),
-		//isScrambling_(false),
-		//solutionSteps_(0),
-		//solution_(""),
-		//duration_(0),
-		//animate_(false),
-		//pUi_(nullptr)
 	{
 		bool animate = false;
 		ResetCube(size, xt, yt, zt, animate, nullptr);
-
-		//for(int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerF_[i][j] = cubes_[Location(i, j, size - 1)].get();
-
-		//for (int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerB_[i][j] = cubes_[Location(i, j, 0)].get();
-
-		//for (int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerL_[i][j] = cubes_[Location(0, i, j)].get();
-
-		//for (int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerR_[i][j] = cubes_[Location(size - 1, i, j)].get();
-
-		//for (int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerU_[i][j] = cubes_[Location(i, size - 1, j)].get();
-
-		//for (int i = 0; i < size; ++i)
-		//	for (int j = 0; j < size; ++j)
-		//		layerD_[i][j] = cubes_[Location(i, 0, j)].get();
-
 	}
 
 	RubiksCubeModel_v10::RubiksCubeModel_v10(const RubiksCubeModel_v10& copy)
-		: //cubes_(copy.cubes_),
-		size_(copy.size_),
-		//cubeSize_(copy.cubeSize_),
+		: size_(copy.size_),
+		subCubeSize_(copy.subCubeSize_),
 		extend_(copy.extend_),
 		g_bRotating(copy.g_bRotating),
 		g_bFlipRotation(copy.g_bFlipRotation),
@@ -585,9 +431,6 @@ namespace mm {
 		solutionSteps_(copy.solutionSteps_),
 		solution_(copy.solution_),
 		duration_(copy.duration_)
-		//xt_(copy.xt_),
-		//yt_(copy.yt_),
-		//zt_(copy.zt_)
 	{
 		for (auto& obj : copy.cubes_)
 		{
@@ -813,36 +656,12 @@ namespace mm {
 		animate_ = animate;
 		pUi_ = &ui;
 
-		//string solution;
-		//if (size_ == 2)
-		//{
-		//	RubiksCubeSolver_2x2x2 solver(*this, animate, ui);
-		//	using HRClock = std::chrono::high_resolution_clock;
-		//	HRClock::time_point start_time = HRClock::now();
-		//	solution = solver.solve(solutionSteps);
-		//	HRClock::time_point end_time = HRClock::now();
-		//	std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		//	duration = time_span.count();
-		//}
-		//else if (size_ == 3)
-		//{
-		//	RubiksCubeSolver_3x3x3 solver(*this, animate, ui);
-		//	using HRClock = std::chrono::high_resolution_clock;
-		//	HRClock::time_point start_time = HRClock::now();
-		//	solution = solver.solve(solutionSteps);
-		//	HRClock::time_point end_time = HRClock::now();
-		//	std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		//	duration = time_span.count();
-		//}
-
 		solutionSteps_ = 0;
 		solution_ = "";
 		duration_ = 0;
 
 		isSolving_ = true;
 		RubiksCubeSolver_NxNxN solver(*this);
-		//using HRClock = std::chrono::high_resolution_clock;
-		//HRClock::time_point start_time = HRClock::now();
 		startTime_ = HRClock::now();
 		string solution = solver.solve(solutionSteps);
 		HRClock::time_point end_time = HRClock::now();
@@ -995,19 +814,11 @@ namespace mm {
 		status = statusStr;
 	}
 
-	//void RubiksCubeModel_v10::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
-	//{
-	//	scramblingSteps_ = scramblingSteps;
-	//	scramblingAlgo_ = scramblingAlgo;
-	//	solutionSteps_ = solutionSteps;
-	//	solution_ = solution;
-	//	duration_ = duration;
-	//}
-
 	void RubiksCubeModel_v10::render()
 	{
 #ifdef _DEBUG
 		// Draw Axis
+		glLineWidth(3.0f);
 		glBegin(GL_LINES);
 		// x
 		glColor3f(1.0f, 0.6f, 0.0f); // orange
@@ -1106,11 +917,11 @@ namespace mm {
 		//bool mirrorVisibleFaces = true;
 		
 		double xt, yt, zt;
-		//xt = yt = zt = cubeSize_;
-		//if (cubeType_ == cubeType::mirrorCube)
+		xt = yt = zt = subCubeSize_;
+		if (cubeType_ == cubeType::mirrorCube)
 			pCube.getThickness(xt, yt, zt);
 
-		int offsetDist = (1 + size_) * xt; //distance of mirror image plane from the cube face
+		int offsetDist = (1 + size_) * subCubeSize_; //distance of mirror image plane from the cube face
 		const float textureExtend = xt / 2.0;
 
 		xt /= 2.0;
@@ -1180,29 +991,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(z - extend_) < 0.0001)
-			//if (fabs(z - extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(0, 0, offsetDist * scale_);
+			if (fabs(z - extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(0, 0, offsetDist * scale_);
 
-			//	// Mirror Front Face
-			//	glPushName((GLuint)Front);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(front));
-			//	glBegin(GL_QUADS);
-			//	ColorRGB colRgb = ColorRGB::RGBColors[front];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(0.0f, 0.0f, -1.0f);
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad			
+				// Mirror Front Face
+				glPushName((GLuint)Front);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(front));
+				glBegin(GL_QUADS);
+				ColorRGB colRgb = ColorRGB::RGBColors[front];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(0.0f, 0.0f, -1.0f);
+				glTexCoord2d(0.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Left Of The Texture and Quad
+				glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, zt);	// Top Left Of The Texture and Quad
+				glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, zt);	// Top Right Of The Texture and Quad
+				glTexCoord2d(1.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Right Of The Texture and Quad			
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(0, 0, -offsetDist * scale_);
-			//	glPushMatrix();
-			//}
+				glTranslated(0, 0, -offsetDist * scale_);
+				glPopMatrix();
+			}
 		}
 
 		//if (Back != Color::Black)
@@ -1221,29 +1032,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			//if (fabs(z - -extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(0, 0, -offsetDist * scale_);
+			if (fabs(z - -extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(0, 0, -offsetDist * scale_);
 
-			//	// Mirror Back Face
-			//	glPushName((GLuint)Back);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(back));
-			//	glBegin(GL_QUADS);
-			//	colRgb = ColorRGB::RGBColors[back];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(0.0f, 0.0f, +1.0f);
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad			
+				// Mirror Back Face
+				glPushName((GLuint)Back);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(back));
+				glBegin(GL_QUADS);
+				colRgb = ColorRGB::RGBColors[back];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(0.0f, 0.0f, +1.0f);
+				glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, -zt);	// Bottom Right Of The Texture and Quad
+				glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, -zt);	// Bottom Left Of The Texture and Quad
+				glTexCoord2d(0.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Left Of The Texture and Quad
+				glTexCoord2d(1.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Right Of The Texture and Quad			
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(0, 0, offsetDist * scale_);
-			//	glPushMatrix();
-			//}
+				glTranslated(0, 0, offsetDist * scale_);
+				glPopMatrix();
+			}
 		}
 
 		//if (Up != Color::Black)
@@ -1263,29 +1074,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(y - extend_) < 0.0001)
-			//if (fabs(y - extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(0, (offsetDist + 0) * scale_, 0);
+			if (fabs(y - extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(0, (offsetDist + 0) * scale_, 0);
 
-			//	// Mirror Up Face
-			//	glPushName((GLuint)Up);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(top));
-			//	glBegin(GL_QUADS);
-			//	colRgb = ColorRGB::RGBColors[top];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(0.0f, -1.0f, 0.0f);
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+				// Mirror Up Face
+				glPushName((GLuint)Up);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(top));
+				glBegin(GL_QUADS);
+				colRgb = ColorRGB::RGBColors[top];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(0.0f, -1.0f, 0.0f);
+				glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Left Of The Texture and Quad
+				glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Right Of The Texture and Quad
+				glTexCoord2d(1.0, 0.0); glVertex3f(xt, yt, zt);	// Bottom Right Of The Texture and Quad
+				glTexCoord2d(0.0, 0.0); glVertex3f(-xt, yt, zt);	// Bottom Left Of The Texture and Quad
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(0, -(offsetDist + 0) * scale_, 0);
-			//	glPushMatrix();
-			//}
+				glTranslated(0, -(offsetDist + 0) * scale_, 0);
+				glPopMatrix();
+			}
 		}
 
 		//if (Down != Color::Black)
@@ -1304,29 +1115,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			//if (fabs(y - -extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(0, -(offsetDist + 1) * scale_, 0);
+			if (fabs(y - -extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(0, -(offsetDist + 1) * scale_, 0);
 
-			//	// Down Face
-			//	glPushName((GLuint)Down);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(bottom));
-			//	glBegin(GL_QUADS);
-			//	colRgb = ColorRGB::RGBColors[bottom];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(0.0f, +1.0f, 0.0f);
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
+				// Down Face
+				glPushName((GLuint)Down);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(bottom));
+				glBegin(GL_QUADS);
+				colRgb = ColorRGB::RGBColors[bottom];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(0.0f, +1.0f, 0.0f);
+				glTexCoord2d(1.0, 1.0); glVertex3f(-xt, -yt, -zt);	// Top Right Of The Texture and Quad
+				glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Right Of The Texture and Quad
+				glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Left Of The Texture and Quad
+				glTexCoord2d(0.0, 1.0); glVertex3f(xt, -yt, -zt);	// Top Left Of The Texture and Quad
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(0, (offsetDist + 1) * scale_, 0);
-			//	glPushMatrix();
-			//}
+				glTranslated(0, (offsetDist + 1) * scale_, 0);
+				glPopMatrix();
+			}
 		}
 
 		//if (Right != Color::Black)
@@ -1346,29 +1157,29 @@ namespace mm {
 			glPopName();
 
 			//if (mirrorVisibleFaces && g_bRotating && fabs(x - extend_) < 0.0001)
-			//if (fabs(x - extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(offsetDist * scale_, 0, 0);
+			if (fabs(x - extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(offsetDist * scale_, 0, 0);
 
-			//	// Mirror Right face
-			//	glPushName((GLuint)Right);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(right));
-			//	glBegin(GL_QUADS);
-			//	colRgb = ColorRGB::RGBColors[right];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(-1.0f, 0.0f, 0.0f);
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+				// Mirror Right face
+				glPushName((GLuint)Right);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(right));
+				glBegin(GL_QUADS);
+				colRgb = ColorRGB::RGBColors[right];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(-1.0f, 0.0f, 0.0f);
+				glTexCoord2d(1.0, 0.0); glVertex3f(xt, -yt, -zt);	// Bottom Right Of The Texture and Quad
+				glTexCoord2d(0.0, 0.0); glVertex3f(xt, -yt, zt);	// Bottom Left Of The Texture and Quad
+				glTexCoord2d(0.0, 1.0); glVertex3f(xt, yt, zt);	// Top Left Of The Texture and Quad
+				glTexCoord2d(1.0, 1.0); glVertex3f(xt, yt, -zt);	// Top Right Of The Texture and Quad
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(-offsetDist * scale_, 0, 0);
-			//	glPushMatrix();
-			//}
+				glTranslated(-offsetDist * scale_, 0, 0);
+				glPopMatrix();
+			}
 		}
 
 		//if (Left != Color::Black)
@@ -1387,29 +1198,29 @@ namespace mm {
 			glEnd();
 			glPopName();
 
-			//if (fabs(x - -extend_) < 0.0001)
-			//{
-			//	glPushMatrix();
-			//	glTranslated(-offsetDist * scale_, 0, 0);
+			if (fabs(x - -extend_) < 0.0001)
+			{
+				glPushMatrix();
+				glTranslated(-offsetDist * scale_, 0, 0);
 
-			//	// Mirror Left Face
-			//	glPushName((GLuint)Left);
-			//	glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(left));
-			//	glBegin(GL_QUADS);
-			//	colRgb = ColorRGB::RGBColors[left];
-			//	glColor3ub(colRgb.r, colRgb.g, colRgb.b);
-			//	glNormal3f(+1.0f, 0.0f, 0.0f);
-			//	glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-			//	glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-			//	glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-			//	glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+				// Mirror Left Face
+				glPushName((GLuint)Left);
+				glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(left));
+				glBegin(GL_QUADS);
+				colRgb = ColorRGB::RGBColors[left];
+				glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+				glNormal3f(+1.0f, 0.0f, 0.0f);
+				glTexCoord2d(0.0, 0.0); glVertex3f(-xt, -yt, -zt);	// Bottom Left Of The Texture and Quad
+				glTexCoord2d(0.0, 1.0); glVertex3f(-xt, yt, -zt);	// Top Left Of The Texture and Quad
+				glTexCoord2d(1.0, 1.0); glVertex3f(-xt, yt, zt);	// Top Right Of The Texture and Quad
+				glTexCoord2d(1.0, 0.0); glVertex3f(-xt, -yt, zt);	// Bottom Right Of The Texture and Quad
 
-			//	glEnd();
-			//	glPopName();
+				glEnd();
+				glPopName();
 
-			//	glTranslated(offsetDist * scale_, 0, 0);
-			//	glPushMatrix();
-			//}
+				glTranslated(offsetDist * scale_, 0, 0);
+				glPopMatrix();
+			}
 		}
 
 		glPopName();
@@ -1420,80 +1231,6 @@ namespace mm {
 
 		glPopMatrix();
 	}
-
-	//unique_ptr<RubiksCubeModel_v10::Cube> RubiksCubeModel_v10::CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location)
-	//{
-	//	Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
-	//	double xtCurrent = yt;
-	//	double ytCurrent = yt;
-	//	double ztCurrent = yt;
-
-	//	if (x == 0)
-	//	{
-	//		left = Orange;
-	//		//right = Black;
-	//		xtCurrent = xt;
-	//	}
-	//	if (x == size_ - 1)
-	//	{
-	//		//left = Black;
-	//		right = Red;
-	//		xtCurrent = zt;
-	//	}
-	//	//else
-	//	//{
-	//	//	left = Black;
-	//	//	right = Black;
-	//	//}
-
-	//	if (y == 0)
-	//	{
-	//		bottom = White;
-	//		//top = Black;
-	//		ytCurrent = xt;
-	//	}
-	//	if (y == size_ - 1)
-	//	{
-	//		//bottom = Black;
-	//		top = Yellow;
-	//		ytCurrent = zt;
-	//	}
-	//	//else
-	//	//{
-	//	//	bottom = Black;
-	//	//	top = Black;
-	//	//}
-
-	//	if (z == 0)
-	//	{
-	//		back = Green;
-	//		//front = Black;
-	//		ztCurrent = xt;
-	//	}
-	//	if (z == size_ - 1)
-	//	{
-	//		//back = Black;
-	//		front = Blue;
-	//		ztCurrent = zt;
-	//	}
-	//	//else
-	//	//{
-	//	//	back = Black;
-	//	//	front = Black;
-	//	//}
-
-	//	auto retVal = make_unique<Cube>(top, bottom, left, right, front, back, location);
-	//	retVal->setThickness(xtCurrent, ytCurrent, ztCurrent);
-	//	return std::move(retVal);
-	//}
-
-	//const RubiksCubeModel_v10::Cube& RubiksCubeModel_v10::GetCube(double x, double y, double z)
-	//{
-	//	//if (!IsValidCube(x, y, z))
-	//	//	RubiksCubeSolverUtils::RunTimeAssert
-	//	
-	//	return *cubes_[Location(cubeSize_ * (x - 1), cubeSize_ * (y - 1), cubeSize_ * (z - 1))];
-	//}
 
 	RubiksCubeModel_v10::Cube& RubiksCubeModel_v10::GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3)
 	{
@@ -1599,7 +1336,7 @@ namespace mm {
 					return cube;
 			}
 
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Oops...nothing matched, something went wrong");
 		}
 		else*/
 		{
@@ -1661,7 +1398,7 @@ namespace mm {
 					return cube;
 			}
 
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Oops...nothing matched, something went wrong");
 		}
 	}
 
@@ -1684,113 +1421,6 @@ namespace mm {
 
 	bool RubiksCubeModel_v10::IsFaceSolved(RubiksCubeModel_v10::Face face)
 	{
-		/*
-		int x = 0, y = 0, z = 0;
-		if (face == Left || face == Right)
-		{
-			x = (face == Left) ? 0 : size_ - 1;
-			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
-
-			for (int j = 0; j < size_; j++)
-			{
-				for (int k = 0; k < size_; k++)
-				{
-					if (cubes_[Location(x, j, k)]->GetFaceColor(face) != color)
-						return false;
-				}
-			}
-		}
-		else if (face == Up || face == Down)
-		{
-			y = (face == Down) ? 0 : size_ - 1;
-			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
-
-			for (int i = 0; i < size_; i++)
-			{
-				for (int k = 0; k < size_; k++)
-				{
-					if (cubes_[Location(i, y, k)]->GetFaceColor(face) != color)
-						return false;
-				}
-			}
-		}
-		else if (face == Front || face == Back)
-		{
-			z = (face == Back) ? 0 : size_ - 1;
-			Color color = cubes_[Location(x, y, z)]->GetFaceColor(face);
-
-			for (int i = 0; i < size_; i++)
-			{
-				for (int j = 0; j < size_; j++)
-				{
-					if (cubes_[Location(i, j, z)]->GetFaceColor(face) != color)
-						return false;
-				}
-			}
-		}
-
-		return true;
-		*/
-		/*
-		fptr xcomp = defaultFun;
-		fptr ycomp = defaultFun;
-		fptr zcomp = defaultFun;
-
-		//lessThanZero(double a) { return a < 0.0; }
-		//bool greaterThanZero(double a) { return a > 0.0; }
-		Face targetFace;
-
-		//TODO: remove this switch statement and pass the arguments to IsFaceSolved(currentFace, targetFace or targetColor, xcomp, ycomp, zcomp)
-		switch (face)
-		{
-		case Left:
-			xcomp = lessThanZero;
-			targetFace = Right;
-			break;
-		case Right:
-			xcomp = greaterThanZero;
-			targetFace = Left;
-			break;
-		case Down:
-			ycomp = lessThanZero;
-			targetFace = Up;
-			break;
-		case Up:
-			ycomp = greaterThanZero;
-			targetFace = Down;
-			break;
-		case Back:
-			zcomp = lessThanZero;
-			targetFace = Front;
-			break;
-		case Front:
-			zcomp = greaterThanZero;
-			targetFace = Back;
-			break;
-		}
-
-		Color currentColor = Color::Black;
-		for(const auto& obj : cubes_)
-		{
-			Cube& cube = *obj.second;
-			const Location& loc = cube.getLocation();
-			bool xMatch = (*xcomp)(loc.x_);
-			bool yMatch = (*ycomp)(loc.y_);
-			bool zMatch = (*zcomp)(loc.z_);
-			if (xMatch && yMatch && zMatch)
-			{
-				if (currentColor == Color::Black)
-					currentColor = cube.GetFaceColor(targetFace);
-				else if (currentColor != cube.GetFaceColor(targetFace))
-					return false;
-			}
-		}
-
-		return true;
-		*/
-		
-		//double extend_ = (size_ - 1) / 2.0;
-
 		if (face == Left || face == Right)
 		{
 			int iStart = (face == Left) ? -extend_ : extend_;
@@ -1843,7 +1473,6 @@ namespace mm {
 			}
 		}
 		
-
 		return true;
 	}
 
@@ -1866,33 +1495,6 @@ namespace mm {
 	{
 		pauseAnimation_ = pause;
 		return pauseAnimation_;
-	}
-
-	void RubiksCubeModel_v10::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
-	{
-		animate_ = animate;
-		pUi_ = &ui;
-		//solutionSteps_ = 0;
-		//solution_ = "";
-		//duration_ = 0;
-
-		//If the rubik's cube is in solved state, reset srambling algo
-		if(isSolved())
-		{
-			scramblingSteps_ = 0;
-			scramblingAlgo_ = "";
-			//startTime_ = HRClock::now();
-		}
-		isScrambling_ = true;
-		status_ = status::scrambled;
-
-		int steps = applyAlgorithm(algorithm);
-		isScrambling_ = false;
-
-		if(isSolved())
-			status_ = status::solved;
-		else
-			status_ = status::scrambled;
 	}
 
 	bool RubiksCubeModel_v10::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
@@ -1928,7 +1530,6 @@ namespace mm {
 		return true;
 	}
 
-	//int RubiksCubeModel_v10::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	int RubiksCubeModel_v10::applyAlgorithm(const string& algorithm)
 	{
 		//Check if the algo is valid
@@ -2073,54 +1674,6 @@ namespace mm {
 		return true;
 	}
 
-	//const CVector3& RubiksCubeModel_v10::getRotationAxis(Groups rotationSection)
-	//{
-	//	switch (rotationSection)
-	//	{
-	//	case F:
-	//		g_vRotationAxis = CVector3(0, 0, 1);
-	//		break;
-
-	//	case Z:
-	//		g_vRotationAxis = CVector3(0, 0, 1);
-	//		break;
-
-	//	case B:
-	//		g_vRotationAxis = CVector3(0, 0, 1);
-	//		break;
-
-	//	case L:
-	//		g_vRotationAxis = CVector3(1, 0, 0);
-	//		break;
-
-	//	case X:
-	//		g_vRotationAxis = CVector3(1, 0, 0);
-	//		break;
-
-	//	case R:
-	//		g_vRotationAxis = CVector3(1, 0, 0);
-	//		break;
-
-	//	case U:
-	//		g_vRotationAxis = CVector3(0, 1, 0);
-	//		break;
-
-	//	case Y:
-	//		g_vRotationAxis = CVector3(0, 1, 0);
-	//		break;
-
-	//	case D:
-	//		g_vRotationAxis = CVector3(0, 1, 0);
-	//		break;
-
-	//	default:
-	//		RubiksCubeSolverUtils::RunTimeAssert(false);
-	//		break;
-	//	}
-	//}
-
-	//void RubiksCubeModel_v10::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
-	//void RubiksCubeModel_v10::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
 	void RubiksCubeModel_v10::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations)
 	{
 		//cout << "\nApplying move: " << face;
@@ -2313,28 +1866,6 @@ namespace mm {
 		//Fix cube position and Reset all parameters
 		g_nRotationAngle = targetAngle;
 		fixRubiksCubeFaces();
-		//for (int x = xStart; x <= xEnd; ++x)
-		//{
-		//	for (int y = yStart; y <= yEnd; ++y)
-		//	{
-		//		for (int z = zStart; z <= zEnd; ++z)
-		//		{
-		//			Cube& cube = *cubes_[Location{ x, y, z }];
-		//			cube.fixRubiksCubeFaces(g_vRotationAxis, g_nRotationAngle);
-		//			cube.initializeMatrix();
-		//		}
-		//	}
-		//}
-
-		//int rotations = numRotations;
-		//if (isPrime)
-		//	rotations = 4 - rotations;
-
-		//for (int layerIndex = layerIndexFrom - 1; layerIndex < layerIndexTo; ++layerIndex)
-		//{
-		//	//Rotate the layer
-		//	compilation error
-		//}
 
 		if (animate_)
 		{
@@ -2349,7 +1880,6 @@ namespace mm {
 		g_nRotatingSection = None;
 	}
 
-
 	void RubiksCubeModel_v10::fixRubiksCubeFaces()
 	{
 		fixRubiksCubeFaces(g_vRotationAxis, g_nRotatingSection, g_nLayerIndexFrom, g_nLayerIndexTo, g_nRotationAngle);
@@ -2357,12 +1887,10 @@ namespace mm {
 
 	void RubiksCubeModel_v10::fixRubiksCubeFaces(CVector3 rotationAxis, RubiksCubeModel_v10::Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle)
 	{
-		
 		if (rotatingSection == RubiksCubeModel_v10::Face::All)
 		{
 			for (auto& obj : cubes_)
 			{
-				//const Location& loc = obj.first;
 				Cube& cube = *obj.second;
 				cube.rotateLocation(rotationAxis, rotationAngle);
 				cube.rotateThickness(rotationAxis, rotationAngle);
@@ -2385,25 +1913,6 @@ namespace mm {
 
 			return;
 		}
-		//else
-		//{
-		//	for (auto& obj : cubes_)
-		//	{
-		//		Cube& cube = *obj;
-		//		if (cube.belongsTo(rotatingSection, layerIndexFrom, layerIndexTo, extend_, cubeType_))
-		//			cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
-		//	}
-		//}
-
-		//return;
-
-
-
-
-
-
-		//double xt;
-		//cubes_[0]->getThickness(xt, xt, xt);
 
 		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
 		{
@@ -2414,11 +1923,6 @@ namespace mm {
 			double* pi = nullptr;
 			double* pj = nullptr;
 
-			fptr xcomp = defaultFun;
-			fptr ycomp = defaultFun;
-			fptr zcomp = defaultFun;
-			fptr fun[3] = { lessThanZero, equalToZero, greaterThanZero };
-			//TODO: for regular Rubiks cube, initialize fun[cubeSize_] with the all possible center location in any one direction
 			int currentLayer = layerIndex - 1; //modify range to [0, cubeSize_)
 			int maxLayerIndex = size_ - 1;
 
@@ -2428,53 +1932,36 @@ namespace mm {
 				x = -extend_ + diff;
 				pi = &y;
 				pj = &z;
-				xcomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::Right:
 				x = +extend_ + diff;
 				pi = &y;
 				pj = &z;
-				xcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::Down:
 				pi = &x;
 				y = -extend_ + diff;
 				pj = &z;
-				ycomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::Up:
 				pi = &x;
 				y = +extend_ + diff;
 				pj = &z;
-				ycomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::Back:
 				pi = &x;
 				pj = &y;
 				z = -extend_ + diff;
-				zcomp = fun[currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::Front:
 				pi = &x;
 				pj = &y;
 				z = +extend_ + diff;
-				zcomp = fun[maxLayerIndex - currentLayer];
 				break;
 			case RubiksCubeModel_v10::Face::All:
 			default:
 				RubiksCubeSolverUtils::RunTimeAssert(false, "Unrecognized face");
 			}
-
-			//for (auto& obj : cubes_)
-			//{
-			//	Cube& cube = *obj;
-			//	const Location& loc = cube.getLocation();
-			//	bool xMatch = (*xcomp)(loc.x_);
-			//	bool yMatch = (*ycomp)(loc.y_);
-			//	bool zMatch = (*zcomp)(loc.z_);
-			//	if (xMatch && yMatch && zMatch)
-			//		cube.fixRubiksCubeFaces(rotationAxis, rotationAngle);
-			//}
 
 			*pi = -extend_;
 			for (int i = 0; i < size_; ++i, *pi += subCubeSize_)
@@ -2487,9 +1974,6 @@ namespace mm {
 
 					auto it = cubes_.find(Location(x, y, z));
 					RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
-					//const Location& loc = it->first;
-					//unique_ptr<Cube>& current = it->second;
-					//current->rotate(rotationAxis, rotationAngle);
 					Cube& cube = *it->second;
 					cube.rotateLocation(rotationAxis, rotationAngle);
 					cube.rotateThickness(rotationAxis, rotationAngle);

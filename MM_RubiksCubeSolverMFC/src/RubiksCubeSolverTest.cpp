@@ -42,6 +42,7 @@ using namespace std;
 #include "RubiksCubeModel_v2.h"
 #include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
+#include "MM_RubiksCubeSolverMFCDlg.h"
 
 namespace mm {
 
@@ -55,7 +56,8 @@ namespace mm {
 		//"RubiksCubeModel_v5",
 		//"RubiksCubeModel_v6",
 		//"RubiksCubeModel_v7",
-		"RubiksCubeModel_v8"
+		//"RubiksCubeModel_v8"
+		"RubiksCubeModel_v10"
 	};
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
@@ -247,7 +249,7 @@ namespace mm {
 								{"Rubik's size: " + to_string(testInfoAggregateSet[j].size_)},
 								{"Executing test number: " + to_string(testNum + 1)}
 							};
-							RubiksCubeSolverUtils::displayMessage(vecMessages);
+							CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage(vecMessages);
 						}
 
 						testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);

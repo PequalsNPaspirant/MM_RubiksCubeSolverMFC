@@ -303,24 +303,6 @@ namespace mm {
 		return solution;
 	}
 
-//	string RubiksCubeSolverScene::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration)
-//	{
-//		bool animate = false;
-//		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
-//		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
-//		RubiksCubeSolverUtils::RunTimeAssert(copy->isSolved());
-//
-//		int size;
-//		int scramblingSteps;
-//		string scramblingAlgo;
-//		int steps;
-//		string sol;
-//		unsigned long long dur;
-//		copy->getUpdatedStats(size, scramblingSteps, scramblingAlgo, steps, sol, dur);
-////		rubicCubeModel_->setDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
-//		return solution;
-//	}
-
 	bool RubiksCubeSolverScene::isSolved()
 	{
 		return rubicCubeModel_->isSolved();

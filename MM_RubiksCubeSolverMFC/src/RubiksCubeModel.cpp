@@ -164,10 +164,6 @@ namespace mm {
 
 	void RubiksCubeFactoryMap::removeEntry(const string& modelName)
 	{
-		//auto it = rubiksCubeFactoryMap_.find(modelName);
-		//if(it != rubiksCubeFactoryMap_.end())
-		//	auto iteratorToNextElement = rubiksCubeFactoryMap_.erase(it);
-
 		size_t numElementsRemoved = rubiksCubeFactoryMap_.erase(modelName);
 	}
 

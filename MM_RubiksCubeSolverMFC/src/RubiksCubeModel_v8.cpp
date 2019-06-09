@@ -1342,7 +1342,9 @@ namespace mm {
 			{
 				Cube& cube = *obj;
 				const Location& loc = cube.getLocation();
-				if (fabs(x - loc.x_) < 0 && fabs(y - loc.y_) < 0 && fabs(z - loc.z_) < 0)
+				Location expected{ x, y, z };
+				//if (fabs(x - loc.x_) < 0 && fabs(y - loc.y_) < 0 && fabs(z - loc.z_) < 0)
+				if(loc == expected)
 					return cube;
 			}
 

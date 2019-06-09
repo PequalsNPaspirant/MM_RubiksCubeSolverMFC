@@ -81,9 +81,7 @@ namespace mm {
 	private:
 		void SetCubeTypeImpl();
 		void ScrambleImpl();
-		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
 		void runRubiksCubeTests();
-		//void fitToScreenImpl();
 
 		enum class firstGenerationCommands //Only one command can be executed at a time
 		{
@@ -134,7 +132,6 @@ namespace mm {
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 		void setSleepTimeMilliSec(int val) { sleepTimeMilliSec_ = val; }
 		bool getInterruptAnimation() { return interruptAnimation_; }
-		//void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status);
 		void displayUpdatedStats();
 		string generateScramblingAlgo(int length);
 		bool pauseAnimation(bool pause);

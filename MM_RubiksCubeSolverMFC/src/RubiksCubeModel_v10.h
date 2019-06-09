@@ -125,19 +125,6 @@ namespace mm {
 			static const ColorRGB RGBColors[7];
 		};
 
-		class Utility
-		{
-		public:
-			//static Groups getGroup(char layer, int index)
-			//{
-			//}
-
-			//static const CVector3& getAxis(char layer, int index)
-			//{
-			//	static vector<CVector3*> data{};
-			//}
-		};
-
 		struct Location
 		{
 			Location()
@@ -203,10 +190,6 @@ namespace mm {
 							matrix[Row][Column] = 0.0;
 
 				return matrix;
-
-
-
-
 
 				using RotationMatrix = vector<vector<double>>;
 				static vector<vector<RotationMatrix>> rotationMatrixSet(3, vector<RotationMatrix>(3, RotationMatrix(4, vector<double>(4, 0.0))));
@@ -296,28 +279,6 @@ namespace mm {
 				z_ = result[0][2];
 			}
 
-			//int recalcGroup(int size)
-			//{
-			//	double extend = (size - 1) / 2.0;
-			//	int group = 0;
-			//	if (fabs(x_ - (-extend)) < 0.0001)
-			//		group |= Groups::L;
-			//	else if (fabs(x_ - extend) < 0.0001)
-			//		group |= Groups::R;
-
-			//	if (fabs(y_ - (-extend)) < 0.0001)
-			//		group |= Groups::D;
-			//	else if (fabs(y_ - extend) < 0.0001)
-			//		group |= Groups::U;
-
-			//	if (fabs(z_ - (-extend)) < 0.0001)
-			//		group |= Groups::B;
-			//	else if (fabs(z_ - extend) < 0.0001)
-			//		group |= Groups::F;
-
-			//	return group;
-			//}
-
 			double x_;
 			double y_;
 			double z_;
@@ -330,7 +291,6 @@ namespace mm {
 			Cube(const Cube& copy)
 				: faces_(copy.faces_),
 				location_(copy.location_)
-				//group_(copy.group_)
 			{}
 			Cube(Cube&&) = default;
 			Cube& operator=(const Cube&) = default;
@@ -352,7 +312,6 @@ namespace mm {
 			void rotateLocation(CVector3 rotationAxis, double rotationAngle);
 			void rotateThickness(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
-			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v10::cubeType) const;
 			void setThickness(double x, double y, double z) { xt_ = x; yt_ = y; zt_ = z; }
 			void getThickness(double& x, double& y, double& z) const { x = xt_; y = yt_; z = zt_; }
 
@@ -366,9 +325,7 @@ namespace mm {
 			vector<Color> faces_;
 			Location cubeCenter_; //Location of actual cube center
 			Location location_; //Location of cube in NxNxN Rubik's Cube matrix of equal sized sub-cubes
-			//int cubeSize_;
 			double xt_, yt_, zt_; //thicknesses in each direction
-			//int group_;
 		};
 
 	public:
@@ -380,9 +337,8 @@ namespace mm {
 		bool getAnimate() { return animate_; }
 		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override {}
 		void ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui) override;
-		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override {}
 		bool scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep) override;
-		//int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
 		int applyAlgorithm(const string& algorithm);
 		string generateScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
@@ -391,7 +347,6 @@ namespace mm {
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) override;
-		//void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
 
 		bool activateRubiksCube() override;
 		bool activateMirrorCube() override;
@@ -402,7 +357,6 @@ namespace mm {
 
 		bool pauseAnimation(bool pause) override;
 
-		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void fixRubiksCubeFaces(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
 		int getSize() const { return size_; }
@@ -454,8 +408,6 @@ namespace mm {
 		};
 
 		bool IsValidCube(int x, int y, int z);
-		//unique_ptr<Cube> CreateCube(double x, double y, double z, double xt, double yt, double zt, const Location& location, const Location& cubeCenter);
-		//void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations);
 		void fixRubiksCubeFaces();
 
@@ -486,11 +438,7 @@ namespace mm {
 		int g_nLayerIndexTo;
 		double g_nRotationAngle;
 		const int subCubeSize_{ 2 };
-		//double extend_{ cubeSize_ * (size_ - 1) / 2.0 };
 		int extend_{ subCubeSize_ * (size_ - 1) / 2 };
-		//double xt_{ 1.0 };
-		//double yt_{ 2.0 };
-		//double zt_{ 3.0 };
 		cubeType cubeType_{ cubeType::rubiksCube };
 
 		int scramblingSteps_;
@@ -580,12 +528,6 @@ namespace mm {
 			//bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
 
 			RubiksCubeModel_v10& rubiksCube_;
-			//string solution_;
-			//int solutionSteps_;
-
-			//bool animate_;
-			//RubiksCubeSolverGUI& ui_;
-
 			unordered_set<unsigned int> solvedEdges_;
 		};
 	};

@@ -61,7 +61,6 @@ namespace mm {
 		string generateScramblingAlgo(int length);
 		bool scramble(const string& algo, bool animate, string& invalidStep);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
-		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
 		void fitToScreen();
 		bool activateRubiksCube();

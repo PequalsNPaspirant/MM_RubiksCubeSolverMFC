@@ -30,9 +30,6 @@
 #include <string>
 using namespace std;
 
-//#include "RubiksCubeSolverMainWindow.h"
-#include "MM_RubiksCubeSolverMFCDlg.h"
-
 namespace mm {
 
 	class RubiksCubeSolverUtils
@@ -67,12 +64,6 @@ namespace mm {
 					*nullPointer = 0;
 				}
 			}
-		}
-
-		static void displayMessage(const std::vector<string>& vmsg)
-		{
-			//std::vector<string> vmsg{ message };
-			CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage(vmsg);
 		}
 	};
 
