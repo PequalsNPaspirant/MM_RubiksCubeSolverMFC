@@ -332,6 +332,122 @@ namespace mm {
 		string solutionMsg("Solution Algorithm (" + to_string(solutionSteps) + " steps): " + solution);
 		string durationStr("Time required to solve: " + getCommaSeparatedTimeDuration(duration));
 
+		static int hourglassIndex = -1;
+		//static const string hourglass{ "|/-\\" };
+		//static const vector<string> hourglass{
+		//	">-----",
+		//	"->----",
+		//	"-->---",
+		//	"--->--",
+		//	"---->-",
+		//	"----->",
+		//	"-----<",
+		//	"----<-",
+		//	"---<--",
+		//	"--<---",
+		//	"-<----",
+		//	"<-----",
+		//};
+		//static const vector<string> hourglass{
+		//	">    ---",
+		//	"->    --",
+		//	"-->    -",
+		//	"--->    ",
+		//	" --->   ",
+		//	"  --->  ",
+		//	"   ---> ",
+		//	"    --->",
+		//};
+		//vector<string> hourglass{
+		//	"|****       |",
+		//	"|*** *      |",
+		//	"|** * *     |",
+		//	"|* * * *    |",
+		//	"| * * * *   |",
+		//	"|  * * * *  |",
+		//	"|   * * * * |",
+		//	"|    * * * *|",
+		//	"|     * * **|",
+		//	"|      * ***|",
+		//	"|       ****|",
+		//};
+		//hourglass.insert(hourglass.end(), hourglass.rbegin(), hourglass.rend());
+		//vector<string> hourglass{
+		//	"|====       |",
+		//	"|=== =      |",
+		//	"|== = =     |",
+		//	"|= = = =    |",
+		//	"| = = = =   |",
+		//	"|  = = = =  |",
+		//	"|   = = = = |",
+		//	"|    = = = =|",
+		//	"|     = = ==|",
+		//	"|      = ===|",
+		//	"|       ====|",
+		//};
+		//hourglass.insert(hourglass.end(), hourglass.rbegin(), hourglass.rend());
+		//vector<string> hourglass{
+		//	"|====          |",
+		//	"|=== =         |",
+		//	"|== =  =       |",
+		//	"|= =  =   =    |",
+		//	"| =  =   =    =|",
+		//	"|   =   =    ==|",
+		//	"|      =    ===|",
+		//	"|          ====|"
+		//};
+		//hourglass.insert(hourglass.end(), hourglass.rbegin(), hourglass.rend());
+		//vector<string> hourglass{
+		//	"|====             |",
+		//	" |====            |",
+		//	"   |====          |",
+		//	"   |=== =         |",
+		//	"   |== =  =       |",
+		//	"   |= =  =   =    |",
+		//	"   | =  =   =    =|",
+		//	"   |   =   =    ==|",
+		//	"   |      =    ===|",
+		//	"   |          ====|",
+		//	"   |            ====|",
+		//	"   |             ====|"
+		//};
+		//hourglass.insert(hourglass.end(), hourglass.rbegin(), hourglass.rend());
+		//vector<string> hourglass{
+		//	"{====             }",
+		//	" {====            }",
+		//	"   {====          }",
+		//	"   {=== =         }",
+		//	"   {== =  =       }",
+		//	"   {= =  =   =    }",
+		//	"   { =  =   =    =}",
+		//	"   {   =   =    ==}",
+		//	"   {      =    ===}",
+		//	"   {          ====}",
+		//	"   {            ====}",
+		//	"   {             ====}"
+		//};
+		//hourglass.insert(hourglass.end(), hourglass.rbegin(), hourglass.rend());
+		vector<string> hourglass{
+			"|XX|====              | X X | ",
+			" |XX|====             | X X | ",
+			" | XX|=== =           | X X | ",
+			" | X X|== =  =        | X X | ",
+			" | X X |= =  =   =    | X X | ",
+			" | X X | =  =   =    =| X X | ",
+			" | X X |   =   =     ==|X X | ",
+			" | X X |      =      ===|XX | ",
+			" | X X |             ====|XX| ",
+		};
+		int count = hourglass.size();
+		for (int i = 0; i < count; ++i)
+			hourglass.push_back(string{ hourglass[i].rbegin(), hourglass[i].rend() });
+		hourglassIndex = (++hourglassIndex) % hourglass.size();
+		string hourglassStr{};
+		//if (isScrambling_ || isSolving_)
+		{
+			hourglassStr = hourglass[hourglassIndex];
+		}
+
 		CMMRubiksCubeSolverMFCDlg::getMainDailog().displayMessage({
 			rubikCubeSize,
 			//scramblingStepsStr,
@@ -339,7 +455,8 @@ namespace mm {
 			//solutionStepsStr,
 			solutionMsg,
 			durationStr,
-			statusStr
+			statusStr,
+			hourglassStr
 			});
 
 	}
