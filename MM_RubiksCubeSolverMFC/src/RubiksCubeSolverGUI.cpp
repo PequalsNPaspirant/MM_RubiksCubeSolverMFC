@@ -458,7 +458,6 @@ namespace mm {
 			statusStr,
 			hourglassStr
 			});
-
 	}
 
 	string RubiksCubeSolverGUI::generateScramblingAlgo(int length)
