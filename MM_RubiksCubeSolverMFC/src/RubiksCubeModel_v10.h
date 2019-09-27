@@ -447,6 +447,8 @@ namespace mm {
 		bool isSolving_{ false };
 		int solutionSteps_;
 		string solution_;
+		string solutionFileFullPath_;
+		ofstream* pSolutionFile_;
 		unsigned long long duration_;
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point startTime_;
@@ -461,6 +463,8 @@ namespace mm {
 		enum class status
 		{
 			scrambled = 0,
+			face_reduction_to_3x3x3,
+			edge_reduction_to_3x3x3,
 			cross,
 			F2L,
 			OLL,

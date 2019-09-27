@@ -31,6 +31,8 @@
 #include <memory>
 #include <chrono>
 #include <numeric>
+#include <fstream> //for file read/write
+#include <algorithm>
 using namespace std;
 
 //#include "Resource.h"
@@ -72,6 +74,8 @@ namespace mm {
 	const double RubiksCubeModel_v10::scale_ = 1.0;
 	const vector<string> RubiksCubeModel_v10::statusStrings{
 		"Scrambled",
+		"face_reduction_to_3x3x3",
+		"edge_reduction_to_3x3x3",
 		"Cross",
 		"First Two Layers",
 		"Orient Last Layer",
@@ -660,6 +664,20 @@ namespace mm {
 		solution_ = "";
 		duration_ = 0;
 
+		ofstream solutionFile;
+		pSolutionFile_ = &solutionFile;
+		string localTime = RubiksCubeSolverTest::getCurrentLocalTimeInNanoSeconds2();
+		//std::replace(localTime.begin(), localTime.end(), ',', ''); //ERROR: '' is not a char
+		localTime.erase(std::remove(localTime.begin(), localTime.end(), ','), localTime.end());
+		solutionFileFullPath_ = pUi_->getSolutionDirectory() + "/RubiksCubeSolution_" + localTime + ".txt";
+		solutionFile.open(solutionFileFullPath_);
+		if (solutionFile.is_open())
+		{
+			solutionFile << "Scrambling Algorithm: ";
+			solutionFile << scramblingAlgo_;
+			solutionFile << "\nSolution Algorithm: ";
+		}
+		
 		isSolving_ = true;
 		RubiksCubeSolver_NxNxN solver(*this);
 		startTime_ = HRClock::now();
@@ -667,6 +685,11 @@ namespace mm {
 		HRClock::time_point end_time = HRClock::now();
 		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
 		duration_ = time_span.count();
+
+		if (solutionFile.is_open())
+		{
+			solutionFile.close();
+		}
 
 		isSolving_ = false;
 		status_ = status::solved;
@@ -1421,6 +1444,10 @@ namespace mm {
 		if (!extractSteps(algorithm))
 			return 0;
 
+		constexpr int maxLen = 500;
+		const char endChar{ '!' };
+		const string endMsg{ "... The solution algorithm exceeds " + to_string(maxLen) + " chars. Please take a look at file '" + solutionFileFullPath_ + "' for the complete solution" + endChar };
+
 		//TODO: avoid the time required for string operations while solving without animation
 		if (!animate_)
 		{
@@ -1432,7 +1459,14 @@ namespace mm {
 			else
 			{
 				solutionSteps_ += algoSteps_.size();
-				solution_ += algorithm;
+				
+				if (solution_.size() < maxLen)
+					solution_ += algorithm;
+				else if (solution_[solution_.size() - 1] != endChar)
+					solution_ += endMsg;
+
+				if (pSolutionFile_->is_open())
+					*pSolutionFile_ << algorithm;
 			}
 		}
 
@@ -1448,7 +1482,14 @@ namespace mm {
 				else
 				{
 					++solutionSteps_;
-					solution_ += algoSteps_[i].thisStep;
+					
+					if (solution_.size() < maxLen)
+						solution_ += algoSteps_[i].thisStep;
+					else if (solution_[solution_.size() - 1] != endChar)
+						solution_ += endMsg;
+
+					if (pSolutionFile_->is_open())
+						*pSolutionFile_ << algoSteps_[i].thisStep;
 
 					HRClock::time_point end_time = HRClock::now();
 					std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - startTime_);
@@ -2006,6 +2047,8 @@ namespace mm {
 		if (size <= 3)
 			return;
 
+		rubiksCube_.status_ = status::face_reduction_to_3x3x3;
+
 		//=====FIX CENTER CUBES====
 
 		//TODO: Check if we already have solved face centers 
@@ -2038,6 +2081,8 @@ namespace mm {
 		//=====FIX EDGES====
 
 		//TODO: Check if we already have any solved edges
+
+		rubiksCube_.status_ = status::edge_reduction_to_3x3x3;
 
 		//Take while face up
 		//applyAlgorithm("X2"); //This may help create cross

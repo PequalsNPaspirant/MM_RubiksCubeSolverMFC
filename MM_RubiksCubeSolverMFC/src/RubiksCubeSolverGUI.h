@@ -135,6 +135,7 @@ namespace mm {
 		void displayUpdatedStats();
 		string generateScramblingAlgo(int length);
 		bool pauseAnimation(bool pause);
+		const string& getSolutionDirectory() { return solutionDirectory_; }
 
 		//Menu Handlers
 		void Reset(bool animate);
@@ -180,6 +181,7 @@ namespace mm {
 
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
+		string solutionDirectory_;
 
 		std::thread renderingThread_;
 		std::atomic<bool> renderNow_{ false };

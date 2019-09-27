@@ -34,6 +34,7 @@
 #include <cassert>
 //#include <thread>
 //#include <chrono>
+#include <experimental/filesystem> // or #include <filesystem>
 using namespace std;
 
 #include "RubiksCubeSolverGUI.h"
@@ -72,11 +73,16 @@ namespace mm {
 		framesPerRotation_(20), //moderate
 		sleepTimeMilliSec_(20), //moderate
 		rubiksCubeSize_(3),
-		tester_(*this)
+		tester_(*this),
+		solutionDirectory_{ "C:/RubiksCubeSolutions" }
 		//selMenuAnimationSpeed(ID_ANIMATIONSPEED_MODERATE),
 		//selMenuRubiksCubeSize(ID_RUBIK_3X3X3)
 	{
-		
+		//Create a directory to store Rubik's Cube scramble and solutions
+		namespace fs = std::experimental::filesystem;
+		if (!fs::is_directory(solutionDirectory_) || !fs::exists(solutionDirectory_)) {
+			fs::create_directory(solutionDirectory_);
+		}
 	}
 
 	RubiksCubeSolverGUI::~RubiksCubeSolverGUI()
