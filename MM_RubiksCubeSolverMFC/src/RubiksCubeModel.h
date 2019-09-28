@@ -81,7 +81,7 @@ namespace mm {
 		virtual unique_ptr<RubiksCubeModel> copy() = 0;
 		virtual string getModelName() = 0;
 		virtual int getDimension() = 0;
-		virtual bool activateRubiksCube() { return true; }
+		virtual bool activateRubiksCube(int size) { return true; }
 		virtual bool activateMirrorCube() { return true; }
 
 		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) {}

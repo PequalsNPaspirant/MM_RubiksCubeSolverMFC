@@ -447,8 +447,9 @@ namespace mm {
 	{
 	}
 
-	bool RubiksCubeModel_v10::activateRubiksCube()
+	bool RubiksCubeModel_v10::activateRubiksCube(int size)
 	{
+		size_ = size;
 		cubeType_ = cubeType::rubiksCube;
 		//int size = 3;
 		double xt = 1.0;
@@ -732,7 +733,8 @@ namespace mm {
 
 	void RubiksCubeModel_v10::render()
 	{
-#ifdef _DEBUG
+//#ifdef _DEBUG
+		float txsz = size_ / 4.0 / 2.0;
 		// Draw Axis
 		glLineWidth(3.0f);
 		glBegin(GL_LINES);
@@ -743,6 +745,11 @@ namespace mm {
 		glColor3f(1.0f, 0.0f, 0.0f); // red
 		glVertex3d(scale_ * size_ * 3, 0.0, 0.0);
 		glVertex3d(scale_ * size_ * 4.5f, 0.0, 0.0);
+		glColor3f(1.0f, 1.0f, 1.0f); // white
+		glVertex3d(scale_ * size_ * 4.5f + txsz, -txsz, -txsz);
+		glVertex3d(scale_ * size_ * 4.5f + txsz, txsz, txsz);
+		glVertex3d(scale_ * size_ * 4.5f + txsz, -txsz, txsz);
+		glVertex3d(scale_ * size_ * 4.5f + txsz, txsz, -txsz);
 
 		// y
 		//glColor3f(0.0f, 1.0f, 0.0f);  // green
@@ -752,6 +759,13 @@ namespace mm {
 		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
 		glVertex3d(0.0, scale_ * size_ * 3, 0.0);
 		glVertex3d(0.0, scale_ * size_ * 4.5f, 0.0);
+		glColor3f(1.0f, 1.0f, 1.0f); // white
+		glVertex3d(-txsz, scale_ * size_ * 4.5f + txsz, -txsz);
+		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
+		glVertex3d(txsz, scale_ * size_ * 4.5f + txsz, -txsz);
+		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, txsz);
 
 		// z
 		glColor3f(0.0f, 1.0f, 0.0f);  // green
@@ -760,8 +774,16 @@ namespace mm {
 		glColor3f(0.0f, 0.0f, 1.0f); // blue
 		glVertex3d(0.0, 0.0, scale_ * size_ * 3);
 		glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glColor3f(1.0f, 1.0f, 1.0f); // white
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+
 		glEnd();
-#endif
+//#endif
 
 		glInitNames();
 
@@ -834,10 +856,14 @@ namespace mm {
 		
 		double xt, yt, zt;
 		xt = yt = zt = subCubeSize_;
+		//int offsetDist = (1 + size_) * subCubeSize_; //distance of mirror image plane from the cube face
+		int offsetDist = 2 * size_;
 		if (cubeType_ == cubeType::mirrorCube)
+		{
 			pCube.getThickness(xt, yt, zt);
-
-		int offsetDist = (1 + size_) * subCubeSize_; //distance of mirror image plane from the cube face
+			//offsetDist = 
+		}
+		
 		const float textureExtend = xt / 2.0;
 
 		xt /= 2.0;
@@ -910,7 +936,7 @@ namespace mm {
 			if (fabs(z - extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(0, 0, offsetDist * scale_);
+				glTranslated(0, 0, (offsetDist - z) * scale_);
 
 				// Mirror Front Face
 				glPushName((GLuint)Front);
@@ -927,7 +953,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(0, 0, -offsetDist * scale_);
+				glTranslated(0, 0, -(offsetDist - z) * scale_);
 				glPopMatrix();
 			}
 		}
@@ -951,7 +977,7 @@ namespace mm {
 			if (fabs(z - -extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(0, 0, -offsetDist * scale_);
+				glTranslated(0, 0, -(offsetDist + z) * scale_);
 
 				// Mirror Back Face
 				glPushName((GLuint)Back);
@@ -968,7 +994,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(0, 0, offsetDist * scale_);
+				glTranslated(0, 0, (offsetDist + z) * scale_);
 				glPopMatrix();
 			}
 		}
@@ -993,7 +1019,7 @@ namespace mm {
 			if (fabs(y - extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(0, (offsetDist + 0) * scale_, 0);
+				glTranslated(0, (offsetDist - y) * scale_, 0);
 
 				// Mirror Up Face
 				glPushName((GLuint)Up);
@@ -1010,7 +1036,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(0, -(offsetDist + 0) * scale_, 0);
+				glTranslated(0, -(offsetDist - y) * scale_, 0);
 				glPopMatrix();
 			}
 		}
@@ -1034,7 +1060,7 @@ namespace mm {
 			if (fabs(y - -extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(0, -(offsetDist + 1) * scale_, 0);
+				glTranslated(0, -(offsetDist + y) * scale_, 0);
 
 				// Down Face
 				glPushName((GLuint)Down);
@@ -1051,7 +1077,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(0, (offsetDist + 1) * scale_, 0);
+				glTranslated(0, (offsetDist + y) * scale_, 0);
 				glPopMatrix();
 			}
 		}
@@ -1076,7 +1102,7 @@ namespace mm {
 			if (fabs(x - extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(offsetDist * scale_, 0, 0);
+				glTranslated((offsetDist - x) * scale_, 0, 0);
 
 				// Mirror Right face
 				glPushName((GLuint)Right);
@@ -1093,7 +1119,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(-offsetDist * scale_, 0, 0);
+				glTranslated(-(offsetDist - x) * scale_, 0, 0);
 				glPopMatrix();
 			}
 		}
@@ -1117,7 +1143,7 @@ namespace mm {
 			if (fabs(x - -extend_) < 0.0001)
 			{
 				glPushMatrix();
-				glTranslated(-offsetDist * scale_, 0, 0);
+				glTranslated(-(offsetDist + x) * scale_, 0, 0);
 
 				// Mirror Left Face
 				glPushName((GLuint)Left);
@@ -1134,7 +1160,7 @@ namespace mm {
 				glEnd();
 				glPopName();
 
-				glTranslated(offsetDist * scale_, 0, 0);
+				glTranslated((offsetDist + x) * scale_, 0, 0);
 				glPopMatrix();
 			}
 		}

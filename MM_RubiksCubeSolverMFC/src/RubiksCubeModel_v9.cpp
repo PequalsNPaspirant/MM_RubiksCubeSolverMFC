@@ -600,8 +600,9 @@ namespace mm {
 	{
 	}
 
-	bool RubiksCubeModel_v9::activateRubiksCube()
+	bool RubiksCubeModel_v9::activateRubiksCube(int size)
 	{
+		size_ = size;
 		cubeType_ = cubeType::rubiksCube;
 		//int size = 3;
 		double xt = 1.0;

@@ -322,9 +322,9 @@ namespace mm {
 		//2		04		- 17			13
 	}
 
-	bool RubiksCubeSolverScene::activateRubiksCube()
+	bool RubiksCubeSolverScene::activateRubiksCube(int size)
 	{
-		return rubicCubeModel_->activateRubiksCube();
+		return rubicCubeModel_->activateRubiksCube(size);
 	}
 
 	bool RubiksCubeSolverScene::activateMirrorCube()

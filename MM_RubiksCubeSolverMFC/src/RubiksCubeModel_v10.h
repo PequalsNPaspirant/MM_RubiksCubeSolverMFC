@@ -348,7 +348,7 @@ namespace mm {
 		bool IsFaceSolved(Face face);
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) override;
 
-		bool activateRubiksCube() override;
+		bool activateRubiksCube(int size) override;
 		bool activateMirrorCube() override;
 
 		unique_ptr<RubiksCubeModel> copy() override;

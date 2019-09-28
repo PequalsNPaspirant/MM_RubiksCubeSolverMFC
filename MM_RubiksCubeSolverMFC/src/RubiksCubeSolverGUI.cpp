@@ -96,8 +96,9 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
-	bool RubiksCubeSolverGUI::activateRubiksCube()
+	bool RubiksCubeSolverGUI::activateRubiksCube(int size)
 	{
+		rubikCubeSize_ = size;
 		cubeType_ = cubeType::rubiksCube;
 		firstGenCommand_ = firstGenerationCommands::eSetCubeType;
 		return activateRenderingThread();
@@ -1041,7 +1042,7 @@ namespace mm {
 		switch (cubeType_)
 		{
 		case cubeType::rubiksCube:
-			scene_.activateRubiksCube();
+			scene_.activateRubiksCube(rubikCubeSize_);
 			break;
 		case cubeType::mirrorCube:
 			scene_.activateMirrorCube();

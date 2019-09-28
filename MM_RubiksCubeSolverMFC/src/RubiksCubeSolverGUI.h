@@ -59,7 +59,7 @@ namespace mm {
 		RubiksCubeSolverGUI& operator=(RubiksCubeSolverGUI&&) = delete;
 		~RubiksCubeSolverGUI();
 		void initialize(HWND hWnd);
-		bool activateRubiksCube();
+		bool activateRubiksCube(int size);
 		bool activateMirrorCube();
 		void Scramble(const string& scramblingAlgo, bool animateIn);
 		void Solve(bool animateIn);
