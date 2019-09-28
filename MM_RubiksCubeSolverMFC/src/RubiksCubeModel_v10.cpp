@@ -469,9 +469,17 @@ namespace mm {
 		return true;
 	}
 
+	void RubiksCubeModel_v10::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
+	{
+		ResetCube(size_, xt_, yt_, zt_, animate, ui);
+	}
+
 	void RubiksCubeModel_v10::ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui)
 	{
 		size_ = size;
+		xt_ = xt;
+		yt_ = yt;
+		zt_ = zt;
 		extend_ = subCubeSize_ * (size_ - 1) / 2; //This is extend of NxNxN matrix in one direction. Assumption: all subCubes are perfect cubes of const size 2.
 		animate_ = animate;
 		pUi_ = ui;

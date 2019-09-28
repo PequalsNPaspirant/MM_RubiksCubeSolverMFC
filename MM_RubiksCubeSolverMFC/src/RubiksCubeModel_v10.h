@@ -335,7 +335,7 @@ namespace mm {
 
 		void setAnimate(bool animate) override { animate_ = animate; }
 		bool getAnimate() { return animate_; }
-		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override {}
+		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
 		void ResetCube(int size, double xt, double yt, double zt, bool animate, RubiksCubeSolverGUI* ui) override;
 		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override {}
 		bool scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep) override;
@@ -430,6 +430,7 @@ namespace mm {
 		//vector<Layer> upLayers{ size_ };
 
 		int size_{ 3 };
+		double xt_, yt_, zt_; //thicknesses in each direction
 		bool g_bRotating;
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
