@@ -1724,12 +1724,14 @@ namespace mm {
 		{
 			if (pUi_->getInterruptAnimation())
 				throw false;
+			pUi_->commandHandlerThirdGen();
 
 			while (pauseAnimation_)
 			{
 				//We should be able to reset cube while animation is paused
 				if (pUi_->getInterruptAnimation())
 					throw false;
+				pUi_->commandHandlerThirdGen();
 
 				pUi_->redrawWindow();
 			}
