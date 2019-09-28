@@ -819,7 +819,7 @@ namespace mm {
 		if (!graphicsAreaCreated_)
 			return;
 
-		///////////GetClientRect(g_hWnd, &g_rWnd);
+		//////////GetClientRect(g_hWnd, &g_rWnd);
 		//////////g_hDC = GetDC(g_hWnd);
 
 		/////////if (!setupPixelFormat(g_hDC))
@@ -828,8 +828,8 @@ namespace mm {
 		g_hRC = wglCreateContext(g_hDC);
 		wglMakeCurrent(g_hDC, g_hRC);
 
-		///////////scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
-		scene_.sizeOpenGlScreen(cx, cy);
+		scene_.initOpenGl(cx, cy);
+		//////////scene_.sizeOpenGlScreen(cx, cy);
 
 		/////////scene_.initScene();
 

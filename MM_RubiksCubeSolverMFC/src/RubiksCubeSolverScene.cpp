@@ -75,15 +75,6 @@ namespace mm {
 
 	void RubiksCubeSolverScene::initOpenGl(int nWidth, int nHeight)
 	{
-		//sizeOpenGlScreen(nWidth, nHeight);
-		glViewport(0, 0, nWidth, nHeight);
-		glMatrixMode(GL_PROJECTION);
-		//glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		setFrustum(nWidth, nHeight);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
 		glPolygonMode(GL_FRONT, GL_FILL);
 		glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 		//glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
@@ -101,27 +92,6 @@ namespace mm {
 
 		//Load all textures after OpenGL context is loaded
 		Textures::loadAllTextures();
-	}
-
-	void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
-	{
-		glPolygonMode(GL_FRONT, GL_FILL);
-		glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-		//glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-
-		//glFrontFace(GL_CCW);
-		glEnable(GL_CULL_FACE); //This hides the mirror images of visible faces as those mirror images have face normal pointing into screen
-
-								//glEnable(GL_COLOR_MATERIAL);
-								//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-		glClearDepth(1.0f);											// Depth Buffer Setup
-		glEnable(GL_DEPTH_TEST);									// Enables Depth Testing
-		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
-		glLineWidth(LINE_WIDTH);									// Set outline width
-
-																	//Load all textures after OpenGL context is loaded
-		Textures::loadAllTextures();
 
 		glViewport(0, 0, nWidth, nHeight);
 		glMatrixMode(GL_PROJECTION);
@@ -131,6 +101,17 @@ namespace mm {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
+
+	//void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
+	//{
+	//	glViewport(0, 0, nWidth, nHeight);
+	//	glMatrixMode(GL_PROJECTION);
+	//	//glMatrixMode(GL_MODELVIEW);
+	//	glLoadIdentity();
+	//	setFrustum(nWidth, nHeight);
+	//	glMatrixMode(GL_MODELVIEW);
+	//	glLoadIdentity();
+	//}
 
 	void RubiksCubeSolverScene::setFrustum(int nWidth, int nHeight)
 	{
