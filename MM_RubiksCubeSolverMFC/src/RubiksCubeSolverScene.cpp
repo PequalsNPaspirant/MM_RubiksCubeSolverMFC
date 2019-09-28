@@ -93,6 +93,11 @@ namespace mm {
 		//Load all textures after OpenGL context is loaded
 		Textures::loadAllTextures();
 
+		sizeOpenGlScreen(nWidth, nHeight);
+	}
+
+	void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
+	{
 		glViewport(0, 0, nWidth, nHeight);
 		glMatrixMode(GL_PROJECTION);
 		//glMatrixMode(GL_MODELVIEW);
@@ -101,17 +106,6 @@ namespace mm {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
-
-	//void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
-	//{
-	//	glViewport(0, 0, nWidth, nHeight);
-	//	glMatrixMode(GL_PROJECTION);
-	//	//glMatrixMode(GL_MODELVIEW);
-	//	glLoadIdentity();
-	//	setFrustum(nWidth, nHeight);
-	//	glMatrixMode(GL_MODELVIEW);
-	//	glLoadIdentity();
-	//}
 
 	void RubiksCubeSolverScene::setFrustum(int nWidth, int nHeight)
 	{

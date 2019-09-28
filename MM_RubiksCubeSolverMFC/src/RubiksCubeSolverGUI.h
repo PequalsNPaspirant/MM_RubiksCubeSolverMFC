@@ -81,6 +81,7 @@ namespace mm {
 	private:
 		void SetCubeTypeImpl();
 		void ScrambleImpl();
+		void OnSizeImpl();
 		void runRubiksCubeTests();
 
 		enum class firstGenerationCommands //Only one command can be executed at a time
@@ -106,11 +107,13 @@ namespace mm {
 			eNoCommand = 0,
 			eSetAnimationSpeed,
 			eFitToScreen,
+			eResizeWindow,
 			eMax
 		};
 
 		firstGenerationCommands firstGenCommand_{ firstGenerationCommands::eNoCommand };
 		secondGenerationCommands secondGenCommand_{ secondGenerationCommands::eNoCommand };
+		thirdGenerationCommands thirdGenCommand_{ thirdGenerationCommands::eNoCommand };
 		bool animate_{ false };
 		string currentModelName_;
 		unsigned int rubikCubeSize_{ 3 };
@@ -124,6 +127,7 @@ namespace mm {
 		/**/bool setupPixelFormat(HDC hdc);
 		void commandHandlerFirstGen();
 		void commandHandlerSecondGen();
+		void commandHandlerThirdGen();
 		void redrawWindow();
 		void applyAlgorithm(const string& algo, bool animate);
 		bool isSolved();

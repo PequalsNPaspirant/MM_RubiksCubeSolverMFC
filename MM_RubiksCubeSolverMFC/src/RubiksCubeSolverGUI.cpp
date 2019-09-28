@@ -196,6 +196,7 @@ namespace mm {
 			{
 				try 
 				{
+					commandHandlerThirdGen(); //Always run these commands
 					commandHandlerFirstGen();
 				}
 				catch (bool flag)
@@ -816,8 +817,18 @@ namespace mm {
 	//  Process WM_SIZE message for window/dialog: 
 	void RubiksCubeSolverGUI::OnSize(int cx, int cy)
 	{
-		if (!graphicsAreaCreated_)
-			return;
+		g_rWnd.left = 0;
+		g_rWnd.right = cx;
+		g_rWnd.top = 0;
+		g_rWnd.bottom = cy;
+		thirdGenCommand_ = thirdGenerationCommands::eResizeWindow;
+		activateRenderingThread(true);
+	}
+
+	void RubiksCubeSolverGUI::OnSizeImpl()
+	{
+		//if (!graphicsAreaCreated_)
+		//	return;
 
 		//////////GetClientRect(g_hWnd, &g_rWnd);
 		//////////g_hDC = GetDC(g_hWnd);
@@ -825,17 +836,16 @@ namespace mm {
 		/////////if (!setupPixelFormat(g_hDC))
 		////////	PostQuitMessage(-1);
 
-		g_hRC = wglCreateContext(g_hDC);
-		wglMakeCurrent(g_hDC, g_hRC);
+		//g_hRC = wglCreateContext(g_hDC);
+		//wglMakeCurrent(g_hDC, g_hRC);
 
-		scene_.initOpenGl(cx, cy);
-		//////////scene_.sizeOpenGlScreen(cx, cy);
+		//scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
+		scene_.sizeOpenGlScreen(g_rWnd.right, g_rWnd.bottom);
 
 		/////////scene_.initScene();
 
-		redrawWindow();
+		//redrawWindow();
 
-		//
 		///////activateRenderingThread(true);
 	}
 
@@ -923,6 +933,25 @@ namespace mm {
 
 		redrawWindow();
 		secondGenCommand_ = secondGenerationCommands::eNoCommand;
+	}
+
+	void RubiksCubeSolverGUI::commandHandlerThirdGen()
+	{
+		switch (thirdGenCommand_)
+		{
+		case thirdGenerationCommands::eResizeWindow:
+		{
+			OnSizeImpl();
+		}
+		break;
+
+		default:
+			//do nothing
+			break;
+		}
+
+		redrawWindow();
+		thirdGenCommand_ = thirdGenerationCommands::eNoCommand;
 	}
 
 	void RubiksCubeSolverGUI::Reset(bool animate)

@@ -48,7 +48,7 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel);
 
 		/**/void initOpenGl(int nWidth, int nHeight);
-		///**//**/void sizeOpenGlScreen(int nWidth, int nHeight);
+		/**//**/void sizeOpenGlScreen(int nWidth, int nHeight);
 		/**//**//**/void setFrustum(int nWidth, int nHeight);
 		/**/void initScene();
 		/**/void renderScene();	
