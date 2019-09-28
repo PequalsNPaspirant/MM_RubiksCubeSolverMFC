@@ -29,7 +29,8 @@
 #include <string>
 #include <atomic>
 #include <thread>
-//#include <mutex>
+#include <mutex>
+#include <condition_variable> // std::condition_variable
 using namespace std;
 
 #include "RubiksCubeSolverScene.h"
@@ -108,10 +109,14 @@ namespace mm {
 			eSetAnimationSpeed,
 			eFitToScreen,
 			eResizeWindow,
+			eZoom,
+			eRotate,
+			ePan,
 			eMax
 		};
 
 		firstGenerationCommands firstGenCommand_{ firstGenerationCommands::eNoCommand };
+		firstGenerationCommands firstGenCommandInProgress_{ firstGenerationCommands::eNoCommand };
 		secondGenerationCommands secondGenCommand_{ secondGenerationCommands::eNoCommand };
 		thirdGenerationCommands thirdGenCommand_{ thirdGenerationCommands::eNoCommand };
 		bool animate_{ false };
@@ -147,9 +152,9 @@ namespace mm {
 		void OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags);
 		void OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags);
 		void OnDestroy(HWND hWnd);
-		void OnMouseMove(int rotate, int tilt);
-		void OnMousePan(int horizontal, int vertical);
-		void OnMouseWheel(float distance);
+		void OnRotate(int rotate, int tilt);
+		void OnPan(int horizontal, int vertical);
+		void OnZoom(float distance);
 		void OnSize(int cx, int cy);
 		void OnMouseLeave(HWND hWnd);
 		void OnRubiksCubeChanged(HWND hWnd);
@@ -188,8 +193,17 @@ namespace mm {
 		RubiksCubeSolverTest tester_;
 		string solutionDirectory_;
 
+	public:
+			void waitOnConditionVariable();
+			void setReadySynchronously(bool ready);
+
+	private:
 		std::thread renderingThread_;
 		std::atomic<bool> renderNow_{ false };
+		bool ready_{ false };
+		std::mutex mtx_;
+		std::condition_variable cv_;
+
 		//No need to have it atomic variable. No need to have a lock.
 		//The reading thread may read stale value which is OK. It will just have delayed responce.
 		//std::atomic<bool> breakOperation_{ false };

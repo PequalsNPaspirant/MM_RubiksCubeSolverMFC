@@ -176,9 +176,12 @@ namespace mm {
 		//secondGenCommand_ = secondGenerationCommands::eFitToScreen;
 		//interruptAnimation_ = true;
 		scene_.fitToScreen();
+		thirdGenCommand_ = thirdGenerationCommands::eFitToScreen;
 		activateRenderingThread();
 	}
 
+#if 0
+	//Implementation using atomic variable and spin lock
 	void RubiksCubeSolverGUI::render()
 	{
 		if (!graphicsAreaCreated_)
@@ -212,6 +215,53 @@ namespace mm {
 				//std::thread t1(&RubiksCubeSolverGUI::Scramble, this, animate);
 				//t1.detach();
 			}
+		}
+	}
+#endif
+
+	void RubiksCubeSolverGUI::waitOnConditionVariable()
+	{
+		std::unique_lock<std::mutex> lock(mtx_);
+		while (!ready_)
+			cv_.wait(lock);
+	}
+
+	void RubiksCubeSolverGUI::setReadySynchronously(bool ready)
+	{
+		std::unique_lock<std::mutex> lock(mtx_);
+		ready_ = ready;
+	}
+
+	void RubiksCubeSolverGUI::render()
+	{
+		if (!graphicsAreaCreated_)
+		{
+			createGraphicsArea();
+			graphicsAreaCreated_ = true;
+		}
+
+		while (keepRunning_)
+		{
+			waitOnConditionVariable(); //blocking call...waits until condition variable is notified
+
+			try
+			{
+				firstGenCommandInProgress_ = firstGenCommand_;
+				commandHandlerThirdGen(); //Always run these commands
+				commandHandlerFirstGen();
+			}
+			catch (bool flag)
+			{
+				//The previous command is broken/interrupted, reset the rubik cube.
+				//If we need to perform different actions on the type of interrupt, we can include that information in the exception object
+				interruptAnimation_ = false; //reset the flag
+				firstGenCommand_ = firstGenerationCommands::eNoCommand;
+			}
+
+			commandHandlerSecondGen();
+
+			firstGenCommandInProgress_ = firstGenerationCommands::eNoCommand;
+			setReadySynchronously(false);
 		}
 	}
 
@@ -595,8 +645,9 @@ namespace mm {
 	}
 
 	//  Process WM_MOUSEMOVE message for window/dialog: 
-	void RubiksCubeSolverGUI::OnMouseMove(int rotate, int tilt)
+	void RubiksCubeSolverGUI::OnRotate(int rotate, int tilt)
 	{
+		thirdGenCommand_ = thirdGenerationCommands::eRotate;
 		//if (!g_bMouseDown)
 		//{
 		//	/*
@@ -783,10 +834,11 @@ namespace mm {
 		//redrawWindow();
 	}
 
-	void RubiksCubeSolverGUI::OnMousePan(int horizontal, int vertical)
+	void RubiksCubeSolverGUI::OnPan(int horizontal, int vertical)
 	{
 		return;
 
+		thirdGenCommand_ = thirdGenerationCommands::ePan;
 		activateRenderingThread(true);
 
 		CVector3 pos = scene_.g_cCamera.GetLookAt();
@@ -808,9 +860,10 @@ namespace mm {
 	}
 
 	//  Process WM_MOUSEWHEEL message for window/dialog: 
-	void RubiksCubeSolverGUI::OnMouseWheel(float distance)
+	void RubiksCubeSolverGUI::OnZoom(float distance)
 	{
 		scene_.g_cCamera.Move(distance);
+		thirdGenCommand_ = thirdGenerationCommands::eZoom;
 		activateRenderingThread(true);
 	}
 
@@ -855,6 +908,8 @@ namespace mm {
 		//g_nRotationAngle = 0;
 	}
 
+#if 0
+	//Implementation using atomic variable and spin lock
 	bool RubiksCubeSolverGUI::activateRenderingThread(bool force /*= false*/)
 	{
 		if (!graphicsAreaCreated_)
@@ -880,7 +935,26 @@ namespace mm {
 			}
 		}
 
-			return true;
+		return true;
+	}
+#endif
+
+	bool RubiksCubeSolverGUI::activateRenderingThread(bool force /*= false*/)
+	{
+		if (!graphicsAreaCreated_)
+			return false;
+
+		//Display a message box
+		if (!force && firstGenCommandInProgress_ != firstGenerationCommands::eNoCommand)
+		{
+			RubiksCubeSolverUtils::CreateOkDialog("Another command is in progress. Please have patience!");
+			return false;
+		}
+
+		setReadySynchronously(true);
+		cv_.notify_all();
+
+		return true;
 	}
 
 	void RubiksCubeSolverGUI::commandHandlerFirstGen()
@@ -909,7 +983,8 @@ namespace mm {
 			break;
 		}
 
-		redrawWindow();
+		if (firstGenCommand_ != firstGenerationCommands::eNoCommand)
+			redrawWindow();
 		firstGenCommand_ = firstGenerationCommands::eNoCommand;
 	}
 
@@ -931,7 +1006,8 @@ namespace mm {
 			break;
 		}
 
-		redrawWindow();
+		if (secondGenCommand_ != secondGenerationCommands::eNoCommand)
+			redrawWindow();
 		secondGenCommand_ = secondGenerationCommands::eNoCommand;
 	}
 
@@ -950,7 +1026,8 @@ namespace mm {
 			break;
 		}
 
-		redrawWindow();
+		if(thirdGenCommand_ != thirdGenerationCommands::eNoCommand)
+			redrawWindow();
 		thirdGenCommand_ = thirdGenerationCommands::eNoCommand;
 	}
 
