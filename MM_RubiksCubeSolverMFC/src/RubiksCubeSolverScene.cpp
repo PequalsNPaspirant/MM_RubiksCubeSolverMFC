@@ -98,11 +98,17 @@ namespace mm {
 
 	void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
 	{
-		if (nHeight == 0)
-		{
-			nHeight = 1;
-		}
+		static int prevWidth = nWidth;
+		static int prevHeight = nHeight;
+		int diffW = (prevWidth - nWidth) / 2;
+		int diffH = (prevHeight - nHeight) / 2;
+		prevWidth = nWidth;
+		prevHeight = nHeight;
 
+		nWidth = 500;
+		nHeight = 500;
+
+		//glViewport(-diffW, -diffH, nWidth - diffW, nHeight - diffH);
 		glViewport(0, 0, nWidth, nHeight);
 		glMatrixMode(GL_PROJECTION);
 		//glMatrixMode(GL_MODELVIEW);
@@ -117,12 +123,14 @@ namespace mm {
 		GLdouble left, right;
 		GLdouble top, bottom;
 		GLdouble nearDist = 2;
-		GLdouble farDist = 10000.0;
+		GLdouble farDist = 100000.0;
 
 		if (nWidth < nHeight)
 		{
 			left = -1.0;
 			right = 1.0;
+			if (nWidth == 0)
+				nWidth = 1;
 			top = (double)nHeight / (double)nWidth;
 			bottom = -top;
 
@@ -131,6 +139,8 @@ namespace mm {
 		{
 			top = 1.0;
 			bottom = -1.0;
+			if (nHeight == 0)
+				nHeight = 1;
 			right = (double)nWidth / (double)nHeight;
 			left = -right;
 		}
@@ -144,6 +154,8 @@ namespace mm {
 		g_cCamera.SetDistance(45.0);
 		g_cCamera.SetPhi((float)(PI / 4));
 		g_cCamera.SetTheta((float)(PI / 4));
+		//g_cCamera.SetPhi((float)(0.0));
+		//g_cCamera.SetTheta((float)(0.0));
 		//g_cCube.Randomize();
 
 		fitToScreen();
@@ -154,7 +166,7 @@ namespace mm {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 		glLoadIdentity();									// Reset The View
 
-		CVector3 pos = g_cCamera.GetPosition();
+		CVector3 pos = g_cCamera.GetEyePosition();
 		CVector3 lookAt = g_cCamera.GetLookAt();
 		CVector3 up = g_cCamera.GetUp();
 
@@ -168,7 +180,7 @@ namespace mm {
 		float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		float* position = new float[4];
 
-		g_cCamera.GetPosition().ToFloatArray(position);
+		g_cCamera.GetEyePosition().ToFloatArray(position);
 
 		glLightfv(GL_LIGHT1, GL_AMBIENT, color);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, color);

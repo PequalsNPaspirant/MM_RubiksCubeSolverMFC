@@ -45,6 +45,8 @@ namespace mm {
 		void Tilt(int nDegrees);
 		void Rotate(int nDegrees);
 		CVector3 GetPosition();
+		CVector3 GetEyePosition();
+		CVector3 GetScreenNormal();
 		BOOL IsFlipped();
 		float GetPhi();
 		float GetTheta();
@@ -53,11 +55,11 @@ namespace mm {
 
 	private:
 		float m_fDistance;
-		float m_fPhi;
-		float m_fTheta;
+		float m_fPhi; //rotation angle - angle around vertical i.e. Z-Axis
+		float m_fTheta; //tilt angle - angle around screen normal i.e. X-Axis
 		bool m_bFlipped;
-		CVector3 m_vLookAt;
-		CVector3 m_vUp;
+		CVector3 m_vLookAt; //The point/location the camera is looking at
+		CVector3 m_vUp; //The up direction
 	};
 
 }

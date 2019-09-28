@@ -141,6 +141,29 @@ namespace mm {
 		return pos - m_vLookAt;
 	}
 
+	CVector3 CCamera::GetScreenNormal()
+	{
+		double x, y, z;
+		x = m_fDistance * cos(m_fPhi * PI / 180) * cos(m_fTheta * PI / 180);
+		y = m_fDistance * sin(m_fTheta * PI / 180);
+		z = m_fDistance * cos(m_fTheta * PI / 180) * sin(m_fPhi * PI / 180);
+
+		CVector3 pos(x, y, z);
+		return pos;
+	}
+
+	CVector3 CCamera::GetEyePosition()
+	{
+		CVector3 screenNormal = GetScreenNormal();
+		//Move center in the direction of screen normal
+		double x = m_vLookAt.x + screenNormal.x;
+		double y = m_vLookAt.y + screenNormal.y;
+		double z = m_vLookAt.z + screenNormal.z;
+
+		CVector3 pos(x, y, z);
+		return pos;
+	}
+
 	BOOL CCamera::IsFlipped()
 	{
 		return m_bFlipped;

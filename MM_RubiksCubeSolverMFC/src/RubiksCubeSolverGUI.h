@@ -144,6 +144,7 @@ namespace mm {
 		void OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags);
 		void OnDestroy(HWND hWnd);
 		void OnMouseMove(int rotate, int tilt);
+		void OnMousePan(int horizontal, int vertical);
 		void OnMouseWheel(float distance);
 		void OnSize(int cx, int cy);
 		void OnMouseLeave(HWND hWnd);

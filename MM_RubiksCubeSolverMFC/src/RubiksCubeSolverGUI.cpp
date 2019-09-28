@@ -782,6 +782,30 @@ namespace mm {
 		//redrawWindow();
 	}
 
+	void RubiksCubeSolverGUI::OnMousePan(int horizontal, int vertical)
+	{
+		return;
+
+		activateRenderingThread(true);
+
+		CVector3 pos = scene_.g_cCamera.GetLookAt();
+
+		//Pan vertically i.e. move pos in up direction by amount = vertical
+		CVector3 up = scene_.g_cCamera.GetUp();
+		pos.x += (up.x * vertical);
+		pos.y += (up.y * vertical);
+		pos.z += (up.z * vertical);
+
+		//Pan horizontally i.e. move pos in horizontal direction by amount = horizontal
+		CVector3 screenNormal = scene_.g_cCamera.GetScreenNormal().Unit();
+		CVector3 panDir = up ^ screenNormal;
+		pos.x += (panDir.x * horizontal);
+		pos.y += (panDir.y * horizontal);
+		pos.z += (panDir.z * horizontal);
+		scene_.g_cCamera.SetLookAt(pos);
+
+	}
+
 	//  Process WM_MOUSEWHEEL message for window/dialog: 
 	void RubiksCubeSolverGUI::OnMouseWheel(float distance)
 	{
