@@ -819,8 +819,23 @@ namespace mm {
 		if (!graphicsAreaCreated_)
 			return;
 
-		scene_.sizeOpenGlScreen(cx, cy);
-		activateRenderingThread(true);
+		GetClientRect(g_hWnd, &g_rWnd);
+		g_hDC = GetDC(g_hWnd);
+
+		if (!setupPixelFormat(g_hDC))
+			PostQuitMessage(-1);
+
+		g_hRC = wglCreateContext(g_hDC);
+		wglMakeCurrent(g_hDC, g_hRC);
+
+		//scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
+		//scene_.initScene();
+
+		redrawWindow();
+
+		//scene_.sizeOpenGlScreen(cx, cy);
+		//activateRenderingThread(true);
 	}
 
 	void RubiksCubeSolverGUI::OnMouseLeave(HWND hWnd)

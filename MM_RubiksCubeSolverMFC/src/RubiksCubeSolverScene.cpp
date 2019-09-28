@@ -105,9 +105,6 @@ namespace mm {
 		prevWidth = nWidth;
 		prevHeight = nHeight;
 
-		nWidth = 500;
-		nHeight = 500;
-
 		//glViewport(-diffW, -diffH, nWidth - diffW, nHeight - diffH);
 		glViewport(0, 0, nWidth, nHeight);
 		glMatrixMode(GL_PROJECTION);
