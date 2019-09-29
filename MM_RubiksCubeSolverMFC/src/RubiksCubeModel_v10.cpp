@@ -734,22 +734,24 @@ namespace mm {
 	void RubiksCubeModel_v10::render()
 	{
 //#ifdef _DEBUG
-		float txsz = size_ / 4.0 / 2.0;
+		double txsz = size_ / 4.0 / 2.0;
 		// Draw Axis
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(3.0f);
 		glBegin(GL_LINES);
 		// x
 		glColor3f(1.0f, 0.6f, 0.0f); // orange
 		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(scale_ * size_ * 3, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 3.0, 0.0, 0.0);
 		glColor3f(1.0f, 0.0f, 0.0f); // red
-		glVertex3d(scale_ * size_ * 3, 0.0, 0.0);
-		glVertex3d(scale_ * size_ * 4.5f, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 3.0, 0.0, 0.0);
+		glVertex3d(scale_ * size_ * 4.5, 0.0, 0.0);
 		glColor3f(1.0f, 1.0f, 1.0f); // white
-		glVertex3d(scale_ * size_ * 4.5f + txsz, -txsz, -txsz);
-		glVertex3d(scale_ * size_ * 4.5f + txsz, txsz, txsz);
-		glVertex3d(scale_ * size_ * 4.5f + txsz, -txsz, txsz);
-		glVertex3d(scale_ * size_ * 4.5f + txsz, txsz, -txsz);
+		glVertex3d(scale_ * size_ * 4.5 + txsz, -txsz, -txsz);
+		glVertex3d(scale_ * size_ * 4.5 + txsz, txsz, txsz);
+		glVertex3d(scale_ * size_ * 4.5 + txsz, -txsz, txsz);
+		glVertex3d(scale_ * size_ * 4.5 + txsz, txsz, -txsz);
 
 		// y
 		//glColor3f(0.0f, 1.0f, 0.0f);  // green
@@ -758,14 +760,14 @@ namespace mm {
 		glVertex3d(0.0, scale_ * size_ * 3, 0.0);
 		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
 		glVertex3d(0.0, scale_ * size_ * 3, 0.0);
-		glVertex3d(0.0, scale_ * size_ * 4.5f, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5, 0.0);
 		glColor3f(1.0f, 1.0f, 1.0f); // white
-		glVertex3d(-txsz, scale_ * size_ * 4.5f + txsz, -txsz);
-		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
-		glVertex3d(txsz, scale_ * size_ * 4.5f + txsz, -txsz);
-		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
-		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, 0.0);
-		glVertex3d(0.0, scale_ * size_ * 4.5f + txsz, txsz);
+		glVertex3d(-txsz, scale_ * size_ * 4.5 + txsz, -txsz);
+		glVertex3d(0.0, scale_ * size_ * 4.5 + txsz, 0.0);
+		glVertex3d(txsz, scale_ * size_ * 4.5 + txsz, -txsz);
+		glVertex3d(0.0, scale_ * size_ * 4.5 + txsz, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5 + txsz, 0.0);
+		glVertex3d(0.0, scale_ * size_ * 4.5 + txsz, txsz);
 
 		// z
 		glColor3f(0.0f, 1.0f, 0.0f);  // green
@@ -773,16 +775,17 @@ namespace mm {
 		glVertex3d(0.0, 0.0, scale_ * size_ * 3);
 		glColor3f(0.0f, 0.0f, 1.0f); // blue
 		glVertex3d(0.0, 0.0, scale_ * size_ * 3);
-		glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
 		//glColor3f(1.0f, 1.0f, 1.0f); // white
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
-		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5f);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
+		//glVertex3d(0.0, 0.0, scale_ * size_ * 4.5);
 
 		glEnd();
+		glFlush();
 //#endif
 
 		glInitNames();
