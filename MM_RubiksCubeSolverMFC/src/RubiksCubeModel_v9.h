@@ -400,7 +400,7 @@ namespace mm {
 		string getModelName() override;
 		int getDimension() override;
 
-		bool pauseAnimation(bool pause) override;
+		void pauseAnimation(bool pause) override;
 
 		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);

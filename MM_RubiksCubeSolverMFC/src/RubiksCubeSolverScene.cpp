@@ -286,10 +286,10 @@ namespace mm {
 		return rubicCubeModel_->generateScramblingAlgo(length, includeNonStandardRotations);
 	}
 
-	bool RubiksCubeSolverScene::pauseAnimation(bool pause)
-	{
-		return rubicCubeModel_->pauseAnimation(pause);
-	}
+	//void RubiksCubeSolverScene::pauseAnimation(bool pause)
+	//{
+	//	rubicCubeModel_->pauseAnimation(pause);
+	//}
 
 	bool RubiksCubeSolverScene::scramble(const string& algo, bool animate, string& invalidStep)
 	{

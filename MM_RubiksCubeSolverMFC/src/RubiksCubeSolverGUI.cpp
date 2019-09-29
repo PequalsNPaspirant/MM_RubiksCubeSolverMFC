@@ -222,9 +222,15 @@ namespace mm {
 
 	void RubiksCubeSolverGUI::waitOnConditionVariable()
 	{
-		std::unique_lock<std::mutex> lock(mtx_);
-		while (!ready_)
-			cv_.wait(lock);
+		//classic double (null) check case to avoid unnecessary locking and unlocking mutex (can happen if we dont have this check and ready_ is true)
+		//Another benefit of this check is that, when ready_ is true, it is not reset to false at the end of this function
+		if (!ready_) 
+		{
+			std::unique_lock<std::mutex> lock(mtx_);
+			while (!ready_)
+				cv_.wait(lock);
+			//ready_ = false; //reset flag so that next time we come here, the thread will get stuck in wait()
+		}
 	}
 
 	void RubiksCubeSolverGUI::setReadySynchronously(bool ready)
@@ -551,9 +557,12 @@ namespace mm {
 		return scene_.generateScramblingAlgo(length);
 	}
 
-	bool RubiksCubeSolverGUI::pauseAnimation(bool pause)
+	void RubiksCubeSolverGUI::pauseAnimation(bool pause)
 	{
-		return scene_.pauseAnimation(pause);
+		//scene_.pauseAnimation(pause);
+		setReadySynchronously(!pause);
+		if(pause == false)
+			cv_.notify_all();
 	}
 
 	// ============================== Message Handling ================================= //
@@ -1087,7 +1096,7 @@ namespace mm {
 				animate = true;
 				solution2 = scene_.Solve(solutionSteps, duration, animate);
 				//TODO: Check if both solutions are same or not
-				assert(solution == solution2);
+				//assert(solution == solution2); //sometimes initial steps may not be same
 			}
 		}
 		return solution;

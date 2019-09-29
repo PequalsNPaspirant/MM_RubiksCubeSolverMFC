@@ -67,7 +67,7 @@ namespace mm {
 		bool activateMirrorCube();
 		int getRubiksCubeSize() { return rubiksCubeSize_; }
 		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status);
-		bool pauseAnimation(bool pause);
+		//void pauseAnimation(bool pause);
 
 		//deleted functions
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;

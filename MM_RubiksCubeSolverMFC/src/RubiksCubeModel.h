@@ -87,7 +87,7 @@ namespace mm {
 		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration, string& status) {}
 
 		virtual bool isAlgoValid(const string& algo, string& invalidStep) { return false; }
-		virtual bool pauseAnimation(bool pause) { return false; }
+		virtual void pauseAnimation(bool pause) { }
 			
 		virtual ~RubiksCubeModel() = 0
 		{

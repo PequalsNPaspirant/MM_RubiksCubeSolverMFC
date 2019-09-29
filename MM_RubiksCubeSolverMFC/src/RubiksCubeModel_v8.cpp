@@ -1502,10 +1502,10 @@ namespace mm {
 		return size_;
 	}
 
-	bool RubiksCubeModel_v8::pauseAnimation(bool pause)
+	void RubiksCubeModel_v8::pauseAnimation(bool pause)
 	{
 		pauseAnumation_ = pause;
-		return pauseAnumation_;
+		//return pauseAnumation_;
 	}
 
 	void RubiksCubeModel_v8::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)

@@ -1433,11 +1433,13 @@ namespace mm {
 		return size_;
 	}
 
-	bool RubiksCubeModel_v10::pauseAnimation(bool pause)
-	{
-		pauseAnimation_ = pause;
-		return pauseAnimation_;
-	}
+	//void RubiksCubeModel_v10::pauseAnimation(bool pause)
+	//{
+	//	//pauseAnimation_ = pause;
+	//	//return pauseAnimation_;
+
+	//	pUi_->setReadySynchronously(!pause);
+	//}
 
 	bool RubiksCubeModel_v10::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui, string& invalidStep)
 	{
@@ -1756,19 +1758,21 @@ namespace mm {
 		int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
 		for(int step = numTotalFrames; step > 0; --step)
 		{
+			pUi_->waitOnConditionVariable();
+
 			if (pUi_->getInterruptAnimation())
 				throw false;
 			pUi_->commandHandlerThirdGen();
 
-			while (pauseAnimation_)
-			{
-				//We should be able to reset cube while animation is paused
-				if (pUi_->getInterruptAnimation())
-					throw false;
-				pUi_->commandHandlerThirdGen();
+			//while (pauseAnimation_)
+			//{
+			//	//We should be able to reset cube while animation is paused
+			//	if (pUi_->getInterruptAnimation())
+			//		throw false;
+			//	pUi_->commandHandlerThirdGen();
 
-				pUi_->redrawWindow();
-			}
+			//	pUi_->redrawWindow();
+			//}
 
 			g_nRotationAngle += stepAngle;
 

@@ -1067,10 +1067,10 @@ namespace mm {
 		return size_;
 	}
 
-	bool RubiksCubeModel_v7::pauseAnimation(bool pause)
+	void RubiksCubeModel_v7::pauseAnimation(bool pause)
 	{
 		pauseAnumation_ = pause;
-		return pauseAnumation_;
+		//return pauseAnumation_;
 	}
 
 	void RubiksCubeModel_v7::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)

@@ -143,7 +143,7 @@ namespace mm {
 		bool getInterruptAnimation() { return interruptAnimation_; }
 		void displayUpdatedStats();
 		string generateScramblingAlgo(int length);
-		bool pauseAnimation(bool pause);
+		void pauseAnimation(bool pause);
 		const string& getSolutionDirectory() { return solutionDirectory_; }
 
 		//Menu Handlers
