@@ -734,10 +734,9 @@ namespace mm {
 	void RubiksCubeModel_v10::render()
 	{
 //#ifdef _DEBUG
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		double txsz = size_ / 4.0 / 2.0;
 		// Draw Axis
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(3.0f);
 		glBegin(GL_LINES);
 		// x

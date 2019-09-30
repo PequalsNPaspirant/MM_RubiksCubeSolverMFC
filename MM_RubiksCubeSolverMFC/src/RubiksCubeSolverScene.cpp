@@ -82,8 +82,11 @@ namespace mm {
 		//glFrontFace(GL_CCW);
 		glEnable(GL_CULL_FACE); //This hides the mirror images of visible faces as those mirror images have face normal pointing into screen
 
-		//glEnable(GL_COLOR_MATERIAL);
-		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+		glShadeModel(GL_SMOOTH);
+		glEnable(GL_LINE_SMOOTH);
+
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
 		glClearDepth(1.0f);											// Depth Buffer Setup
 		glEnable(GL_DEPTH_TEST);									// Enables Depth Testing
