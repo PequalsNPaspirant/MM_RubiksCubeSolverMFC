@@ -110,7 +110,7 @@ namespace mm {
 
 		location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
 
-		int numRotations = fabs(rotationAngle) / 90;
+		int numRotations = static_cast<int>(fabs(rotationAngle) / 90.0);
 		if(rotationAxis == CVector3::XAxis)
 		{
 			while (--numRotations > -1)
@@ -430,7 +430,7 @@ namespace mm {
 			{
 				if (cube.belongsTo(g_nRotatingSection, g_nLayerIndex, size_))
 				{
-					int angle = g_bFlipRotation ? -g_nRotationAngle : g_nRotationAngle;
+					double angle = g_bFlipRotation ? -g_nRotationAngle : g_nRotationAngle;
 					glRotated(angle, g_vRotationAxis.x, g_vRotationAxis.y, g_vRotationAxis.z);
 				}
 			}
@@ -443,9 +443,9 @@ namespace mm {
 
 	void RubiksCubeModel_v2::renderIndividualCube(const RubiksCubeModel_v2::Cube& pCube, const RubiksCubeModel_v2::Location& location)
 	{
-		double x = location.x_;
-		double y = location.y_;
-		double z = location.z_;
+		GLuint x = static_cast<GLuint>(location.x_);
+		GLuint y = static_cast<GLuint>(location.y_);
+		GLuint z = static_cast<GLuint>(location.z_);
 		double extend = (size_ - 1) / 2.0;
 		bool mirrorVisibleFaces = false;
 		int offsetDist = 3;
@@ -1087,9 +1087,9 @@ namespace mm {
 		if (animate)
 		{
 			g_bRotating = true;
-			int angle = g_nRotationAngle;
+			double angle = g_nRotationAngle;
 			g_nRotationAngle = 0;
-			int step = (angle - g_nRotationAngle) / ui.getFramesPerRotation();
+			int step = static_cast<int>(angle - g_nRotationAngle) / ui.getFramesPerRotation();
 			for (int i = 0; i < ui.getFramesPerRotation(); ++i)
 			{
 				g_nRotationAngle += step;
@@ -1967,7 +1967,7 @@ namespace mm {
 			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
 			//Color s1, s2, s3, s4, s5, s6, s7, s8;
 			Color e1, e2, e3, e4;
-			Color s4, s6, s8;
+			//Color s4, s6, s8;
 			string algo("RU'RURURU'R'U'RR");
 
 			//Get centers

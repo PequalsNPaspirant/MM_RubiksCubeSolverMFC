@@ -257,7 +257,7 @@ namespace mm {
 				commandHandlerThirdGen(); //Always run these commands
 				commandHandlerFirstGen();
 			}
-			catch (bool flag)
+			catch (bool)
 			{
 				//The previous command is broken/interrupted, reset the rubik cube.
 				//If we need to perform different actions on the type of interrupt, we can include that information in the exception object
@@ -351,7 +351,7 @@ namespace mm {
 	string getCommaSeparatedTimeDuration(unsigned long long duration)
 	{
 		string durationStr = "000,000.000,000,000";
-		int pos = durationStr.length();
+		int pos = static_cast<int>(durationStr.length());
 		for (; pos > 0 && duration > 0; pos)
 		{
 			if (durationStr[--pos] == '0')
@@ -572,7 +572,7 @@ namespace mm {
 		// check for solution
 		//if (scene_.g_cCube.IsSolved())
 		{
-			TCHAR solvedMsg[MAX_LOADSTRING];
+			//TCHAR solvedMsg[MAX_LOADSTRING];
 			//LoadString(g_hInstance, IDS_SOLVED, solvedMsg, MAX_LOADSTRING);
 			//MessageBox(g_hWnd, solvedMsg, g_szTitle, MB_OK);
 		}

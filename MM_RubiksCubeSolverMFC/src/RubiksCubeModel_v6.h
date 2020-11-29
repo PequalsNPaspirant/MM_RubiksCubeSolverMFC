@@ -219,7 +219,7 @@ namespace mm {
 				if (rotationAngle < 0)
 					rotationAngle += 360;
 
-				int j = round(rotationAngle / 90.0);
+				int j = static_cast<int>(round(rotationAngle / 90.0));
 				--j;
 
 				return rotationMatrixSet[i][j];
@@ -297,7 +297,7 @@ namespace mm {
 
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
-			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size) const;
+			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, double extend) const;
 
 		private:
 			static const int FACE_COUNT = 6;

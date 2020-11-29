@@ -89,7 +89,7 @@ namespace mm {
 		}
 
 		//int numTestCases = testInfoSetBasic.size() + testInfoSetGeneric.size();
-		int numTestCases = testInfoSet.size();
+		int numTestCases = static_cast<int>(testInfoSet.size());
 
 		RubiksCubeSolverUtils::CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed and written to .csv file!");
 
@@ -228,11 +228,11 @@ namespace mm {
 		for (testInfoAggregate& modelinfo : testInfoAggregateSet)
 		{
 			modelinfo.nsAggregateDuration_ = 0;
-			modelinfo.numTestCases_ = scrambleAlgos[modelinfo.size_].size();
+			modelinfo.numTestCases_ = static_cast<unsigned int>(scrambleAlgos[modelinfo.size_].size());
 		}
 
 		unsigned int testNum = 0;
-		for(int size = minSize; size <= maxSize; size += incrementSize)
+		for(unsigned int size = minSize; size <= maxSize; size += incrementSize)
 		{
 			const vector<AlgoPairs>& algos = scrambleAlgos[size];
 			for(int i = 0; i < algos.size(); ++i)

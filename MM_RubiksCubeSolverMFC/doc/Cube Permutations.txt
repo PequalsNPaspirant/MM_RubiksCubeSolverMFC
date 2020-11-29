@@ -1,0 +1,9 @@
+2x2x2
+
+All 8 cubes can be arranged in 8!
+Every cube can be oriented in 3 ways, so total number of permutations = 3^8
+Total permutations so far = 8! * 3^8 = 264,539,520
+But many of above combinations are similar, its just like the whole cube is rotated around their axes.
+there are 3 * 8 = 24 symmetries. Also only 1/3 of the permutations are reachable by rotating layers, not all.
+So, total permutations = (8! * 3^8) / ((3 * 8) * 3)
+

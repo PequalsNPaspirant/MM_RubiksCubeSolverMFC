@@ -270,7 +270,7 @@ namespace mm {
 				if (rotationAngle < 0)
 					rotationAngle += 360;
 
-				int j = round(rotationAngle / 90.0);
+				int j = static_cast<int>(round(rotationAngle / 90.0));
 				--j;
 
 				return rotationMatrixSet[i][j];
@@ -349,9 +349,9 @@ namespace mm {
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
 			void fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle);
-			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size, RubiksCubeModel_v8::cubeType) const;
+			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, double extend, RubiksCubeModel_v8::cubeType) const;
 			void setThickness(double x, double y, double z) { xt_ = x; yt_ = y; zt_ = z; }
-			void getThickness(double& x, double& y, double& z) const { x = xt_; y = yt_; z = zt_; }
+			void getThickness(GLfloat& x, GLfloat& y, GLfloat& z) const { x = static_cast<GLfloat>(xt_); y = static_cast<GLfloat>(yt_); z = static_cast<GLfloat>(zt_); }
 
 			GLfloat matrixf_[16];
 			double matrix_[16];

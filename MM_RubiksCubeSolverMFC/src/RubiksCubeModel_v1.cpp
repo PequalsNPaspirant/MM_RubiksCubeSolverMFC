@@ -1703,7 +1703,7 @@ namespace mm {
 			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
 			//Color s1, s2, s3, s4, s5, s6, s7, s8;
 			Color e1, e2, e3, e4;
-			Color s4, s6, s8;
+			//Color s4, s6, s8;
 			string algo("RU'RURURU'R'U'RR");
 
 			//Get centers

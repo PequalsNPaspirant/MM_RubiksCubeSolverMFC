@@ -282,15 +282,15 @@ namespace mm {
 		//glTranslated(location_.x_ * scale_, location_.y_ * scale_, location_.z_ * scale_);
 		glGetFloatv(GL_MODELVIEW_MATRIX, matrixf_);
 		result = glGetError();
-		matrixf_[12] = location_.x_ * scale_;
-		matrixf_[13] = location_.y_ * scale_;
-		matrixf_[14] = location_.z_ * scale_;
+		matrixf_[12] = static_cast<GLfloat>(location_.x_ * scale_);
+		matrixf_[13] = static_cast<GLfloat>(location_.y_ * scale_);
+		matrixf_[14] = static_cast<GLfloat>(location_.z_ * scale_);
 		glPopMatrix();
 	}
 
 	void RubiksCubeModel_v8::Cube::fixRubiksCubeFaces(CVector3 rotationAxis, double rotationAngle)
 	{
-		int numRotations = fabs(rotationAngle) / 90;
+		int numRotations = static_cast<int>(fabs(rotationAngle) / 90.0);
 		if(rotationAxis == CVector3::XAxis)
 		{
 			while (--numRotations > -1)
@@ -383,7 +383,7 @@ namespace mm {
 		faces_[Right] = temp1;
 	}
 
-	bool RubiksCubeModel_v8::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int extend, RubiksCubeModel_v8::cubeType type) const
+	bool RubiksCubeModel_v8::Cube::belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, double extend, RubiksCubeModel_v8::cubeType type) const
 	{
 		if (rotatingSection == All)
 			return true;
@@ -823,18 +823,18 @@ namespace mm {
 		//TODO:
 		// draw back faces only for the rotating section and the neighbouring sections
 
-		double x = location.x_;
-		double y = location.y_;
-		double z = location.z_;
+		GLuint x = static_cast<GLuint>(location.x_);
+		GLuint y = static_cast<GLuint>(location.y_);
+		GLuint z = static_cast<GLuint>(location.z_);
 		//bool mirrorVisibleFaces = true;
 		
-		double xt, yt, zt;
+		GLfloat xt, yt, zt;
 		//xt = yt = zt = cubeSize_;
 		//if (cubeType_ == cubeType::mirrorCube)
 			pCube.getThickness(xt, yt, zt);
 
-		int offsetDist = (1 + size_) * xt; //distance of mirror image plane from the cube face
-		const float textureExtend = xt / 2.0;
+		int offsetDist = static_cast<int>((1 + size_) * xt); //distance of mirror image plane from the cube face
+		const float textureExtend = xt / 2.0f;
 
 		xt /= 2.0;
 		yt /= 2.0;
@@ -1291,7 +1291,7 @@ namespace mm {
 		}
 		else
 		{
-			double xt;
+			GLfloat xt;
 			cubes_[0]->getThickness(xt, xt, xt);
 			double x, y, z;
 			//double extend_ = (size_ - 1) / 2.0;
@@ -1349,7 +1349,7 @@ namespace mm {
 					return cube;
 			}
 
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Ohhhh...nothing matched, something went wrong");
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Oops...nothing matched, something went wrong");
 		}
 	}
 
@@ -1580,12 +1580,12 @@ namespace mm {
 		{
 			if (isScrambling_)
 			{
-				scramblingSteps_ += algoSteps_.size();
+				scramblingSteps_ += static_cast<int>(algoSteps_.size());
 				scramblingAlgo_ += algorithm;
 			}
 			else
 			{
-				solutionSteps_ += algoSteps_.size();
+				solutionSteps_ += static_cast<int>(algoSteps_.size());
 				solution_ += algorithm;
 			}
 		}
@@ -1612,7 +1612,7 @@ namespace mm {
 			applyStep(algoSteps_[i].face, algoSteps_[i].layerIndexFrom, algoSteps_[i].layerIndexTo, algoSteps_[i].isPrime, algoSteps_[i].numRotations);
 		}
 
-		return algoSteps_.size();
+		return static_cast<int>(algoSteps_.size());
 	}
 
 	bool RubiksCubeModel_v8::extractSteps(const string& algorithm)
@@ -1629,7 +1629,7 @@ namespace mm {
 			if (pos != string::npos)
 				it = algorithm.begin() + pos;
 			string step{ algorithm.begin() + start, it };
-			start = pos;
+			start = static_cast<int>(pos);
 
 			g_bFlipRotation = false;
 			for (int i = 0; i < step.length();)
@@ -1862,7 +1862,7 @@ namespace mm {
 			//Run the loop for (numTotalFrames - 1) times, to avoid division errors. 
 			//The last step should achive perfect angle exactly equal to targetAngle
 			g_nRotationAngle = 0.0;
-			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
+			int numStepsForSnappingEffect = static_cast<int>(numTotalFrames * 0.4); //last 40% rotation is accelerating
 			for(int step = numTotalFrames; step > 0; --step)
 			{
 				if (pUi_->getInterruptAnimation())
@@ -1968,7 +1968,7 @@ namespace mm {
 
 
 
-		double xt;
+		GLfloat xt;
 		cubes_[0]->getThickness(xt, xt, xt);
 
 		for(int layerIndex = layerIndexFrom; layerIndex <= layerIndexTo; ++layerIndex)
@@ -2102,14 +2102,14 @@ namespace mm {
 		};
 
 		//int numNotations = sizeof(charSet) / sizeof(char);
-		int numNotations = charSet.size();
+		int numNotations = static_cast<int>(charSet.size());
 		//int wholeCubeRotateNotations = 3; // 'X', 'Y' and 'Z'
 		//int numSingleLayerRotateNotations = numNotations - wholeCubeRotateNotations;
 		const int standardRotations = 6;
 		if (!includeNonStandardRotations)
 			numNotations = standardRotations;
 		string retVal;
-		srand(time(NULL));
+		srand(static_cast<unsigned int>(time(NULL)));
 		for (int i = 0; i < length; ++i)
 		{
 			int index = rand() % numNotations;
@@ -4397,7 +4397,7 @@ namespace mm {
 	bool RubiksCubeModel_v8::RubiksCubeSolver_NxNxN::buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight)
 	{
 		//Cube currentCube;
-		Color c1, c2, c3, c4, c5, c6, c7;
+		Color c1, c2, c3, c4, c5;
 		bool retVal = true;
 		string algo1("URU'R'U'F'UF");
 		string algo2("U'F'UFURU'R'");
@@ -5102,7 +5102,7 @@ namespace mm {
 		for (int iterations = 0; iterations < 4; iterations++)
 		{
 			Cube currentCube;
-			Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
+			Color c1, c3, c7, c9;
 			Color s1, s2, s3, s4, s5, s6, s7, s8;
 			string algo("RUR'URUUR'");
 
@@ -5371,7 +5371,7 @@ namespace mm {
 			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
 			//Color s1, s2, s3, s4, s5, s6, s7, s8;
 			Color e1, e2, e3, e4;
-			Color s4, s6, s8;
+			//Color s4, s6, s8;
 			int size = rubiksCube_.getSize();
 			string Ua_perm("RU'RURURU'R'U'RR");
 			string Ub_perm("R2URUR'U'R'U'R'UR'");
