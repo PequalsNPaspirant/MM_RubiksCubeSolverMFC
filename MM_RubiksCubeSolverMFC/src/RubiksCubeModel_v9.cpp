@@ -1556,6 +1556,8 @@ namespace mm {
 			}
 
 			RubiksCubeSolverUtils::RunTimeAssert(false, "Oops...nothing matched, something went wrong");
+			Cube& cube = *(cubes_.begin()->second);
+			return cube;
 		}
 	}
 

@@ -1351,6 +1351,9 @@ namespace mm {
 
 			RubiksCubeSolverUtils::RunTimeAssert(false, "Oops...nothing matched, something went wrong");
 		}
+
+		Cube& cube = *cubes_[0];
+		return cube;
 	}
 
 	bool RubiksCubeModel_v8::IsValidCube(int x, int y, int z)
